@@ -1,0 +1,10 @@
+services:
+  postgres:
+    container_name: sklad-postgres
+    image: postgres
+    environment:
+      - POSTGRES_USER=postgres
+      - POSTGRES_PASSWORD=postgres
+      - POSTGRES_DB=sklad
+    ports:
+      - "5432:5432"

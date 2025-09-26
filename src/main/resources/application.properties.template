@@ -1,0 +1,7 @@
+spring.application.name=sklad-project
+spring.ai.openai.api-key=
+spring.datasource.username=postgres
+spring.datasource.password=
+spring.datasource.host=localhost
+spring.datasource.port=5432
+spring.datasource.database-name=sklad
