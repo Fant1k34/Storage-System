@@ -1,16 +1,17 @@
-package com.sklad.skladproject.repository.database.storage.dao
+package com.sklad.skladproject.repository.database.storage.tables
 
+import com.sklad.skladproject.repository.database.storage.DatabaseAccessRepository
 import org.slf4j.LoggerFactory
 import org.springframework.stereotype.Repository
 import kotlin.use
 
 @Repository
-class PackageStorage(val databaseStorage: DatabaseStorage) {
+class PackageStorage(val databaseAccessRepository: DatabaseAccessRepository) {
     private val logger = LoggerFactory.getLogger("PackageStorage")
 
     fun trySavePackage(name: String, weight: Double, unitId: Int): Boolean? {
         try {
-            databaseStorage.getDataSource().connection.use { connection ->
+            databaseAccessRepository.getDataSource().connection.use { connection ->
                 val statement =
                     connection.prepareStatement("INSERT INTO PACKAGE (package_name, package_weight, package_weight_unit_id) VALUES (?, ?, ?) ON CONFLICT (package_name, package_weight, package_weight_unit_id) DO NOTHING")
                 statement.setString(1, name)
@@ -36,7 +37,7 @@ class PackageStorage(val databaseStorage: DatabaseStorage) {
         val packageId: Int
 
         try {
-            databaseStorage.getDataSource().connection.use { connection ->
+            databaseAccessRepository.getDataSource().connection.use { connection ->
                 val statement =
                     connection.prepareStatement("SELECT id FROM PACKAGE WHERE package_name = ? AND package_weight = ? AND package_weight_unit_id = ?")
                 statement.setString(1, name)

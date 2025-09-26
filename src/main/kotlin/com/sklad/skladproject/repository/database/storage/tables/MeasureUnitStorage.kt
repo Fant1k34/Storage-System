@@ -1,11 +1,12 @@
-package com.sklad.skladproject.repository.database.storage.dao
+package com.sklad.skladproject.repository.database.storage.tables
 
+import com.sklad.skladproject.repository.database.storage.DatabaseAccessRepository
 import org.slf4j.LoggerFactory
 import org.springframework.stereotype.Repository
 import kotlin.use
 
 @Repository
-class MeasureUnitStorage(val databaseStorage: DatabaseStorage) {
+class MeasureUnitStorage(val databaseAccessRepository: DatabaseAccessRepository) {
     private val logger = LoggerFactory.getLogger("MeasureUnitStorage")
 
     fun tryGetMeasureUnitId(unitName: String): Int? {
@@ -13,7 +14,7 @@ class MeasureUnitStorage(val databaseStorage: DatabaseStorage) {
         var packUnitId: Int
 
         try {
-            databaseStorage.getDataSource().connection.use { connection ->
+            databaseAccessRepository.getDataSource().connection.use { connection ->
                 val statement = connection.prepareStatement("SELECT id FROM UNIT WHERE unit_name = ?")
                 statement.setString(1, unitName)
 
@@ -33,7 +34,7 @@ class MeasureUnitStorage(val databaseStorage: DatabaseStorage) {
 
     fun trySaveMeasureUnit(unitName: String): Boolean {
         try {
-            databaseStorage.getDataSource().connection.use { connection ->
+            databaseAccessRepository.getDataSource().connection.use { connection ->
                 val statement =
                     connection.prepareStatement("INSERT INTO UNIT (unit_name) VALUES (?) ON CONFLICT (unit_name) DO NOTHING")
                 statement.setString(1, unitName)

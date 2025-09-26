@@ -1,11 +1,12 @@
-package com.sklad.skladproject.repository.database.storage.dao
+package com.sklad.skladproject.repository.database.storage.tables
 
+import com.sklad.skladproject.repository.database.storage.DatabaseAccessRepository
 import org.slf4j.LoggerFactory
 import org.springframework.stereotype.Repository
 import kotlin.use
 
 @Repository
-class PurchaseItemStorage(val databaseStorage: DatabaseStorage) {
+class PurchaseItemStorage(val databaseAccessRepository: DatabaseAccessRepository) {
     private val logger = LoggerFactory.getLogger("PurchaseItemStorage")
 
     fun trySavePurchase(
@@ -19,7 +20,7 @@ class PurchaseItemStorage(val databaseStorage: DatabaseStorage) {
         sellPriceUnitId: Int
     ): Boolean {
         try {
-            databaseStorage.getDataSource().connection.use { connection ->
+            databaseAccessRepository.getDataSource().connection.use { connection ->
                 val statement =
                     connection.prepareStatement("INSERT INTO ITEM_IN_STORAGE (item_id, storage_id, nett_item_quantity, nett_item_quantity_unit_id, bought_price, bought_price_unit, sell_price, sell_price_unit) VALUES (?, ?, ?, ?, ?, ?, ?, ?)")
                 statement.setInt(1, itemId)

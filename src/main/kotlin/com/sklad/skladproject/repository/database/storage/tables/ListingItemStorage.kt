@@ -1,16 +1,17 @@
-package com.sklad.skladproject.repository.database.storage.dao
+package com.sklad.skladproject.repository.database.storage.tables
 
+import com.sklad.skladproject.repository.database.storage.DatabaseAccessRepository
 import org.slf4j.LoggerFactory
 import org.springframework.stereotype.Repository
 import kotlin.use
 
 @Repository
-class ListingItemStorage(val databaseStorage: DatabaseStorage) {
+class ListingItemStorage(val databaseAccessRepository: DatabaseAccessRepository) {
     private val logger = LoggerFactory.getLogger("ListingItemStorage")
 
     fun trySaveListingItem(item: String): Boolean {
         try {
-            databaseStorage.getDataSource().connection.use { connection ->
+            databaseAccessRepository.getDataSource().connection.use { connection ->
                 val statement =
                     connection.prepareStatement("INSERT INTO ITEM (item_name) VALUES (?) ON CONFLICT (item_name) DO NOTHING")
                 statement.setString(1, item)
@@ -32,7 +33,7 @@ class ListingItemStorage(val databaseStorage: DatabaseStorage) {
         var itemId: Int
 
         try {
-            databaseStorage.getDataSource().connection.use { connection ->
+            databaseAccessRepository.getDataSource().connection.use { connection ->
                 val statement = connection.prepareStatement("SELECT id FROM ITEM WHERE item_name = ?")
                 statement.setString(1, itemName)
 

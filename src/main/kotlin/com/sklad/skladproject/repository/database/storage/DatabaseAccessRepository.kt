@@ -1,4 +1,4 @@
-package com.sklad.skladproject.repository.database.storage.dao
+package com.sklad.skladproject.repository.database.storage
 
 import com.zaxxer.hikari.HikariConfig
 import com.zaxxer.hikari.HikariDataSource
@@ -8,7 +8,7 @@ import org.springframework.stereotype.Repository
 import javax.sql.DataSource
 
 @Repository
-class DatabaseStorage(
+class DatabaseAccessRepository(
     @Value("\${spring.datasource.username}") user: String,
     @Value("\${spring.datasource.password}") pass: String,
     @Value("\${spring.datasource.host}") host: String,

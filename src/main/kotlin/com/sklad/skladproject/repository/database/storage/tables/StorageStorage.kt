@@ -1,15 +1,16 @@
-package com.sklad.skladproject.repository.database.storage.dao
+package com.sklad.skladproject.repository.database.storage.tables
 
+import com.sklad.skladproject.repository.database.storage.DatabaseAccessRepository
 import org.slf4j.LoggerFactory
 import org.springframework.stereotype.Repository
 
 @Repository
-class StorageStorage(val databaseStorage: DatabaseStorage) {
+class StorageStorage(val databaseAccessRepository: DatabaseAccessRepository) {
     private val logger = LoggerFactory.getLogger("StorageStorage")
 
     fun trySaveStorage(storageName: String, storageAddress: String): Boolean {
         try {
-            databaseStorage.getDataSource().connection.use { connection ->
+            databaseAccessRepository.getDataSource().connection.use { connection ->
                 val statement =
                     connection.prepareStatement("INSERT INTO STORAGE (storage_name, storage_address) VALUES (?, ?) ON CONFLICT (storage_name) DO NOTHING")
                 statement.executeUpdate()
@@ -33,7 +34,7 @@ class StorageStorage(val databaseStorage: DatabaseStorage) {
         var storageId: Int
 
         try {
-            databaseStorage.getDataSource().connection.use { connection ->
+            databaseAccessRepository.getDataSource().connection.use { connection ->
                 val statement = connection.prepareStatement("SELECT id FROM STORAGE WHERE storage_name = ?")
                 statement.setString(1, storageName)
                 val resultSet = statement.executeQuery()

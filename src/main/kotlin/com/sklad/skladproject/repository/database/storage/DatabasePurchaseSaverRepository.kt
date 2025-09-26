@@ -1,11 +1,12 @@
 package com.sklad.skladproject.repository.database.storage
 
 import com.sklad.skladproject.domain.PurchaseItem
-import com.sklad.skladproject.repository.database.storage.dao.ListingItemStorage
-import com.sklad.skladproject.repository.database.storage.dao.MeasureUnitStorage
-import com.sklad.skladproject.repository.database.storage.dao.PackageStorage
-import com.sklad.skladproject.repository.database.storage.dao.PurchaseItemStorage
-import com.sklad.skladproject.repository.database.storage.dao.StorageStorage
+import com.sklad.skladproject.repository.PurchaseSaverRepository
+import com.sklad.skladproject.repository.database.storage.tables.ListingItemStorage
+import com.sklad.skladproject.repository.database.storage.tables.MeasureUnitStorage
+import com.sklad.skladproject.repository.database.storage.tables.PackageStorage
+import com.sklad.skladproject.repository.database.storage.tables.PurchaseItemStorage
+import com.sklad.skladproject.repository.database.storage.tables.StorageStorage
 import org.slf4j.LoggerFactory
 import org.springframework.stereotype.Repository
 
@@ -16,10 +17,10 @@ class DatabasePurchaseSaverRepository(
     val packageStorage: PackageStorage,
     val storageStorage: StorageStorage,
     val purchaseItemStorage: PurchaseItemStorage
-) {
+) : PurchaseSaverRepository {
     private val logger = LoggerFactory.getLogger("DatabasePurchaseSaverRepository")
 
-    fun trySavePurchaseItem(purchaseItem: PurchaseItem): Boolean {
+    override fun trySavePurchaseItem(purchaseItem: PurchaseItem): Boolean {
         listingItemStorage.trySaveListingItem(purchaseItem.listingItem)
         val listingItemId = listingItemStorage.tryGetListingItemId(purchaseItem.listingItem)
         if (listingItemId == null) {
