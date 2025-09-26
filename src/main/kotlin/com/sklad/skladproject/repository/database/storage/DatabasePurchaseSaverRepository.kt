@@ -81,8 +81,6 @@ class DatabasePurchaseSaverRepository(
             storageId,
             nettItemQuantity,
             nettItemQuantityUnitId,
-            boughtPrice,
-            boughtPriceUnitId,
             soldPrice,
             soldPriceUnitId
         )
