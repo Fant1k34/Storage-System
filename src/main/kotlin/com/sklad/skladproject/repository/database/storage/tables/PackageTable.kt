@@ -6,7 +6,7 @@ import org.springframework.stereotype.Repository
 import kotlin.use
 
 @Repository
-class PackageStorage(val databaseAccessRepository: DatabaseAccessRepository) {
+class PackageTable(val databaseAccessRepository: DatabaseAccessRepository) {
     private val logger = LoggerFactory.getLogger("PackageStorage")
 
     fun trySavePackage(name: String, weight: Double, unitId: Int): Boolean? {
@@ -17,7 +17,7 @@ class PackageStorage(val databaseAccessRepository: DatabaseAccessRepository) {
                 statement.setString(1, name)
                 statement.setDouble(2, weight)
                 statement.setInt(3, unitId)
-                statement.executeQuery()
+                statement.executeUpdate()
                 statement.close()
 
                 logger.info("New Package $name with $weight (measure unit id: $unitId) is saved to table PACKAGE in database")
@@ -33,8 +33,8 @@ class PackageStorage(val databaseAccessRepository: DatabaseAccessRepository) {
         return false
     }
 
-    fun tryGetPackageId(name: String, weight: Double, unitId: Int): Int? {
-        val packageId: Int
+    fun tryGetPackageId(name: String, weight: Double, unitId: Int): Long? {
+        val packageId: Long
 
         try {
             databaseAccessRepository.getDataSource().connection.use { connection ->
@@ -46,7 +46,7 @@ class PackageStorage(val databaseAccessRepository: DatabaseAccessRepository) {
 
                 statement.executeQuery().use { resultSet ->
                     resultSet.next()
-                    packageId = resultSet.getInt(1)
+                    packageId = resultSet.getLong(1)
                 }
             }
         } catch (e: Throwable) {

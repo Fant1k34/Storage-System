@@ -5,7 +5,7 @@ import org.slf4j.LoggerFactory
 import org.springframework.stereotype.Repository
 
 @Repository
-class StorageStorage(val databaseAccessRepository: DatabaseAccessRepository) {
+class StorageTable(val databaseAccessRepository: DatabaseAccessRepository) {
     private val logger = LoggerFactory.getLogger("StorageStorage")
 
     fun trySaveStorage(storageName: String, storageAddress: String): Boolean {

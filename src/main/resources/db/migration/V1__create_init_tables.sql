@@ -35,12 +35,12 @@ CREATE TABLE IF NOT EXISTS ITEM_IN_STORAGE
     nett_item_quantity_unit_id INTEGER REFERENCES UNIT (id) ON DELETE CASCADE,
     sell_price                 DECIMAL,
     sell_price_unit            INTEGER REFERENCES UNIT (id) ON DELETE CASCADE,
-    UNIQUE (item_id, storage_id, nett_item_quantity, nett_item_quantity_unit_id, sell_price, sell_price_unit)
+    UNIQUE (item_id, storage_id, nett_item_quantity_unit_id, sell_price, sell_price_unit)
 );
 
 CREATE TABLE IF NOT EXISTS ITEM_IN_STORAGE_IN_PACKAGE
 (
     id                          SERIAL PRIMARY KEY,
-    item_in_storage_id          INTEGER NOT NULL REFERENCES ITEM_IN_STORAGE (id) ON DELETE CASCADE,
-    package_id                  INTEGER NOT NULL REFERENCES PACKAGE (id) ON DELETE CASCADE
+    item_in_storage_id          BIGINT NOT NULL REFERENCES ITEM_IN_STORAGE (id) ON DELETE CASCADE,
+    package_id                  BIGINT NOT NULL REFERENCES PACKAGE (id) ON DELETE CASCADE
 );

@@ -2,81 +2,76 @@ package com.sklad.skladproject.repository.database.storage
 
 import com.sklad.skladproject.domain.PurchaseItem
 import com.sklad.skladproject.repository.PurchaseSaverRepository
-import com.sklad.skladproject.repository.database.storage.tables.ListingItemStorage
-import com.sklad.skladproject.repository.database.storage.tables.MeasureUnitStorage
-import com.sklad.skladproject.repository.database.storage.tables.PackageStorage
-import com.sklad.skladproject.repository.database.storage.tables.PurchaseItemStorage
-import com.sklad.skladproject.repository.database.storage.tables.StorageStorage
+import com.sklad.skladproject.repository.database.storage.tables.ListingItemTable
+import com.sklad.skladproject.repository.database.storage.tables.MeasureUnitTable
+import com.sklad.skladproject.repository.database.storage.tables.PackageTable
+import com.sklad.skladproject.repository.database.storage.tables.PurchaseItemInStoreTable
+import com.sklad.skladproject.repository.database.storage.tables.PurchaseItemTable
+import com.sklad.skladproject.repository.database.storage.tables.StorageTable
 import org.slf4j.LoggerFactory
 import org.springframework.stereotype.Repository
 
 @Repository
 class DatabasePurchaseSaverRepository(
-    val listingItemStorage: ListingItemStorage,
-    val measureUnitStorage: MeasureUnitStorage,
-    val packageStorage: PackageStorage,
-    val storageStorage: StorageStorage,
-    val purchaseItemStorage: PurchaseItemStorage
+    val listingItemTable: ListingItemTable,
+    val measureUnitTable: MeasureUnitTable,
+    val packageTable: PackageTable,
+    val storageTable: StorageTable,
+    val purchaseItemTable: PurchaseItemTable,
+    val purchaseItemInStoreTable: PurchaseItemInStoreTable,
 ) : PurchaseSaverRepository {
     private val logger = LoggerFactory.getLogger("DatabasePurchaseSaverRepository")
 
     override fun trySavePurchaseItem(purchaseItem: PurchaseItem): Boolean {
-        listingItemStorage.trySaveListingItem(purchaseItem.listingItem)
-        val listingItemId = listingItemStorage.tryGetListingItemId(purchaseItem.listingItem)
+        listingItemTable.trySaveListingItem(purchaseItem.listingItem)
+        val listingItemId = listingItemTable.tryGetListingItemId(purchaseItem.listingItem)
         if (listingItemId == null) {
             logger.error("Listing item ${purchaseItem.listingItem} does not exist in database, despite it was recently added")
             return false
         }
 
         // trySaveMeasureUnit(purchaseItem.pack.weight.unit.unitName) -- should it be saved?
-        val packMeasureUnitId = measureUnitStorage.tryGetMeasureUnitId(purchaseItem.pack.weight.unit.unitName)
+        val packMeasureUnitId = measureUnitTable.tryGetMeasureUnitId(purchaseItem.pack.weight.unit.unitName)
         if (packMeasureUnitId == null) {
             logger.error("Measure unit for package ${purchaseItem.pack.weight.unit.unitName} does not exist in database")
             return false
         }
-        packageStorage.trySavePackage(purchaseItem.pack.name, purchaseItem.pack.weight.number, packMeasureUnitId)
+        packageTable.trySavePackage(purchaseItem.pack.name, purchaseItem.pack.weight.number, packMeasureUnitId)
         val packageId =
-            packageStorage.tryGetPackageId(purchaseItem.pack.name, purchaseItem.pack.weight.number, packMeasureUnitId)
+            packageTable.tryGetPackageId(purchaseItem.pack.name, purchaseItem.pack.weight.number, packMeasureUnitId)
         if (packageId == null) {
             logger.error("Package ${purchaseItem.pack.name} with weight ${purchaseItem.pack.weight.number} (measure unit id: $packMeasureUnitId) does not exist in database, despite it was recently added")
             return false
         }
 
-        val storageId = storageStorage.tryGetStorageId(purchaseItem.storageName)
+        val storageId = storageTable.tryGetStorageId(purchaseItem.storageName)
         if (storageId == null) {
             logger.error("Storage with name ${purchaseItem.storageName} does not exist in database")
             return false
         }
 
         // trySaveMeasureUnit(purchaseItem.quantity.unit.unitName) -- should it be saved?
-        val purchaseItemMeasureId = measureUnitStorage.tryGetMeasureUnitId(purchaseItem.quantity.unit.unitName)
+        val purchaseItemMeasureId = measureUnitTable.tryGetMeasureUnitId(purchaseItem.quantity.unit.unitName)
         if (purchaseItemMeasureId == null) {
             logger.error("Measure unit for purchase item ${purchaseItem.quantity.unit.unitName} does not exist in database")
             return false
         }
 
         val nettItemQuantity = purchaseItem.quantity.number
-        val nettItemQuantityUnitId = measureUnitStorage.tryGetMeasureUnitId(purchaseItem.quantity.unit.unitName)
+        val nettItemQuantityUnitId = measureUnitTable.tryGetMeasureUnitId(purchaseItem.quantity.unit.unitName)
         if (nettItemQuantityUnitId == null) {
             logger.error("Measure unit for item quantity ${purchaseItem.quantity.unit.unitName} does not exist in database")
             return false
         }
 
-        val boughtPrice = purchaseItem.boughtPrice.number
-        val boughtPriceUnitId = measureUnitStorage.tryGetMeasureUnitId(purchaseItem.boughtPrice.unit.unitName)
-        if (boughtPriceUnitId == null) {
-            logger.error("Measure unit for item quantity ${purchaseItem.boughtPrice.unit.unitName} does not exist in database")
-            return false
-        }
-
         val soldPrice = purchaseItem.soldPrice.number
-        val soldPriceUnitId = measureUnitStorage.tryGetMeasureUnitId(purchaseItem.soldPrice.unit.unitName)
+        val soldPriceUnitId = measureUnitTable.tryGetMeasureUnitId(purchaseItem.soldPrice.unit.unitName)
         if (soldPriceUnitId == null) {
             logger.error("Measure unit for item quantity ${purchaseItem.soldPrice.unit.unitName} does not exist in database")
             return false
         }
 
-        purchaseItemStorage.trySavePurchase(
+        val operationId = purchaseItemTable.trySavePurchaseAndReturnId(
             listingItemId,
             storageId,
             nettItemQuantity,
@@ -84,6 +79,13 @@ class DatabasePurchaseSaverRepository(
             soldPrice,
             soldPriceUnitId
         )
+
+        if (operationId == null) {
+            return false
+        }
+
+        purchaseItemInStoreTable.trySavePurchaseItemWithPackage(operationId, packageId)
+
         return true
     }
 }

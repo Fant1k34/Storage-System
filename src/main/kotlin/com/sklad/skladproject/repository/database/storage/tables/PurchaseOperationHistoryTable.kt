@@ -29,7 +29,6 @@ class PurchaseOperationHistoryTable(val databaseAccessRepository: DatabaseAccess
                 statement.setInt(5, boughtPriceUnitId)
                 statement.setString(6, date)
                 statement.setLong(7, currentTimestamp)
-                statement.executeUpdate()
 
                 logger.info("New purchase operation is saved to PURCHASE_OPERATION_HISTORY in database")
                 return true

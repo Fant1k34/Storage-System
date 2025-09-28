@@ -6,7 +6,7 @@ import org.springframework.stereotype.Repository
 import kotlin.use
 
 @Repository
-class MeasureUnitStorage(val databaseAccessRepository: DatabaseAccessRepository) {
+class MeasureUnitTable(val databaseAccessRepository: DatabaseAccessRepository) {
     private val logger = LoggerFactory.getLogger("MeasureUnitStorage")
 
     fun tryGetMeasureUnitId(unitName: String): Int? {

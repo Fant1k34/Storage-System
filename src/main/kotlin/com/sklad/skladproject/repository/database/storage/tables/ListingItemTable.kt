@@ -6,7 +6,7 @@ import org.springframework.stereotype.Repository
 import kotlin.use
 
 @Repository
-class ListingItemStorage(val databaseAccessRepository: DatabaseAccessRepository) {
+class ListingItemTable(val databaseAccessRepository: DatabaseAccessRepository) {
     private val logger = LoggerFactory.getLogger("ListingItemStorage")
 
     fun trySaveListingItem(item: String): Boolean {
