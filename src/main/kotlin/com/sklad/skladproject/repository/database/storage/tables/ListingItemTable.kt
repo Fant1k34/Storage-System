@@ -9,28 +9,32 @@ import kotlin.use
 class ListingItemTable(val databaseAccessRepository: DatabaseAccessRepository) {
     private val logger = LoggerFactory.getLogger("ListingItemStorage")
 
-    fun trySaveListingItem(item: String): Boolean {
+    fun trySaveListingItemAndReturnId(item: String): Result<Long> {
         try {
             databaseAccessRepository.getDataSource().connection.use { connection ->
                 val statement =
-                    connection.prepareStatement("INSERT INTO ITEM (item_name) VALUES (?) ON CONFLICT (item_name) DO NOTHING")
+                    connection.prepareStatement("INSERT INTO ITEM (item_name) VALUES (?) ON CONFLICT (item_name) DO NOTHING RETURNING id")
                 statement.setString(1, item)
-                statement.executeUpdate()
+
+                val resultSet = statement.executeQuery()
+                resultSet.next()
+
+                val operationId = resultSet.getLong(1)
                 statement.close()
 
                 logger.info("Item $item is saved to table ITEM in database")
-                return true
+                return Result.success(operationId)
             }
         } catch (e: Throwable) {
             logger.warn("Error saving new item $item\n. It may already exist", e)
-        }
 
-        return false
+            return Result.failure(Throwable(e))
+        }
     }
 
-    fun tryGetListingItemId(itemName: String): Int? {
+    fun tryGetListingItemId(itemName: String): Long? {
         logger.info("Getting listing item for name $itemName in ITEM table")
-        var itemId: Int
+        var itemId: Long
 
         try {
             databaseAccessRepository.getDataSource().connection.use { connection ->
@@ -39,7 +43,7 @@ class ListingItemTable(val databaseAccessRepository: DatabaseAccessRepository) {
 
                 val resultSet = statement.executeQuery()
                 resultSet.next()
-                itemId = resultSet.getInt(1)
+                itemId = resultSet.getLong(1)
 
                 statement.close()
             }

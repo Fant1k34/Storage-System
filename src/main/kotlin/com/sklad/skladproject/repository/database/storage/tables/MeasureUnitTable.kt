@@ -9,9 +9,32 @@ import kotlin.use
 class MeasureUnitTable(val databaseAccessRepository: DatabaseAccessRepository) {
     private val logger = LoggerFactory.getLogger("MeasureUnitStorage")
 
-    fun tryGetMeasureUnitId(unitName: String): Int? {
+    fun trySaveMeasureUnitAndReturnId(unitName: String): Result<Long> {
+        try {
+            databaseAccessRepository.getDataSource().connection.use { connection ->
+                val statement =
+                    connection.prepareStatement("INSERT INTO UNIT (unit_name) VALUES (?) ON CONFLICT (unit_name) DO NOTHING RETURNING id")
+                statement.setString(1, unitName)
+
+                val resultSet = statement.executeQuery()
+                resultSet.next()
+
+                val unitId = resultSet.getLong(1)
+                statement.close()
+
+                logger.info("Measure unit id for name $unitName is saved to table UNIT in database")
+                return Result.success(unitId)
+            }
+        } catch (e: Throwable) {
+            logger.warn("Error saving new measure unit id for name $unitName\n. It may already exist", e)
+
+            return Result.failure(Throwable(e))
+        }
+    }
+
+    fun tryGetMeasureUnitId(unitName: String): Long? {
         logger.info("Getting measure unit id for name $unitName")
-        var packUnitId: Int
+        var packUnitId: Long
 
         try {
             databaseAccessRepository.getDataSource().connection.use { connection ->
@@ -20,7 +43,7 @@ class MeasureUnitTable(val databaseAccessRepository: DatabaseAccessRepository) {
 
                 val resultSet = statement.executeQuery()
                 resultSet.next()
-                packUnitId = resultSet.getInt(1)
+                packUnitId = resultSet.getLong(1)
 
                 statement.close()
             }
@@ -30,24 +53,5 @@ class MeasureUnitTable(val databaseAccessRepository: DatabaseAccessRepository) {
         }
 
         return packUnitId
-    }
-
-    fun trySaveMeasureUnit(unitName: String): Boolean {
-        try {
-            databaseAccessRepository.getDataSource().connection.use { connection ->
-                val statement =
-                    connection.prepareStatement("INSERT INTO UNIT (unit_name) VALUES (?) ON CONFLICT (unit_name) DO NOTHING")
-                statement.setString(1, unitName)
-                statement.executeUpdate()
-                statement.close()
-
-                logger.info("Measure unit id for name $unitName is saved to table UNIT in database")
-                return true
-            }
-        } catch (e: Throwable) {
-            logger.warn("Error saving new measure unit id for name $unitName\n. It may already exist", e)
-        }
-
-        return false
     }
 }

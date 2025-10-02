@@ -30,7 +30,7 @@ class PurchaseItemTable(val databaseAccessRepository: DatabaseAccessRepository) 
 
                 val resultSet = statement.executeQuery()
                 logger.info("New purchase is saved to ITEM_IN_STORAGE in database")
-                // TODO("Пофиксить внизу, код не работает, кидает ошибку!")
+
                 resultSet.next()
                 val operationId = resultSet.getLong(1)
 

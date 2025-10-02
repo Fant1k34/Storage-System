@@ -1,3 +1,4 @@
 package com.sklad.skladproject.dto
 
-data class PurchaseDto(val items: List<PurchaseItemDto>, val totalPrice: Double, val date: String)
+// Purchase operation which includes items were bought from a stock
+data class PurchaseDto(val items: List<PurchaseItemDto>)

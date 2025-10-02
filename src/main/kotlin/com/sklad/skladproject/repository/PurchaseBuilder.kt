@@ -1,8 +1,8 @@
 package com.sklad.skladproject.repository
 
 import com.sklad.skladproject.domain.Package
-import com.sklad.skladproject.domain.Purchase
 import com.sklad.skladproject.domain.PurchaseItem
+import com.sklad.skladproject.domain.PurchaseItemState
 import com.sklad.skladproject.domain.Quantity
 import com.sklad.skladproject.domain.Unit
 import com.sklad.skladproject.dto.PurchaseDto
@@ -14,11 +14,11 @@ import org.springframework.stereotype.Repository
 class PurchaseBuilder {
     val logger = LoggerFactory.getLogger("PurchaseBuilder")
 
-    fun tryCreatePackage(purchaseItemDto: PurchaseItemDto): Package? {
+    private fun tryCreatePackage(purchaseItemDto: PurchaseItemDto): Package? {
         val packName = purchaseItemDto.packName
         if (packName == null || purchaseItemDto.packWeight == null) return null
 
-        val quantity = tryCreateQuantity(purchaseItemDto.packWeight, purchaseItemDto.packMeasureUnit)
+        val quantity = tryCreateQuantity(purchaseItemDto.packWeight, purchaseItemDto.packUnit)
         return if (quantity != null) Package(packName, quantity) else null
     }
 
@@ -43,36 +43,36 @@ class PurchaseBuilder {
         }
     }
 
-    fun tryCreatePurchaseItem(purchaseItemDto: PurchaseItemDto): PurchaseItem? {
+    private fun tryCreatePurchaseItem(purchaseItemDto: PurchaseItemDto): PurchaseItem? {
+        val date = purchaseItemDto.date
         val listingItem = purchaseItemDto.name
-        val quantity =
-            tryCreateQuantity(purchaseItemDto.amount, purchaseItemDto.amountMeasureUnit)
-                ?: return null.also { logger.error("Cannot create quantity for purchase item") }
+        val quantity = tryCreateQuantity(purchaseItemDto.quantity, purchaseItemDto.quantityUnit)
+            ?: return null.also { logger.error("Cannot create quantity for purchase item") }
         val pack = tryCreatePackage(purchaseItemDto)
             ?: return null.also { logger.error("Cannot create package for purchase item") }
-        val storageName = purchaseItemDto.storage
-        val boughtPrice =
-            tryCreateQuantity(purchaseItemDto.boughtPrice, purchaseItemDto.boughtPriceMeasureUnit)
-                ?: return null.also { logger.error("Cannot create bought price for purchase item") }
-        val soldPrice = purchaseItemDto.soldPrice?.let {
-            purchaseItemDto.soldPriceMeasureUnit?.let {
-                tryCreateQuantity(
-                    purchaseItemDto.soldPrice,
-                    purchaseItemDto.soldPriceMeasureUnit
-                )
-            }
-        } ?: return null.also { logger.error("Cannot create sold price for purchase item") }
+        val boughtPrice = tryCreateQuantity(purchaseItemDto.boughtPrice, purchaseItemDto.boughtPriceUnit)
+            ?: return null.also { logger.error("Cannot create bought price for purchase item") }
 
-        return PurchaseItem(listingItem, quantity, pack, storageName, boughtPrice, soldPrice)
+        val status = PurchaseItemState.SAVED_TO_HISTORY
+        val timestamp = System.currentTimeMillis()
+
+        return PurchaseItem(
+            date,
+            listingItem,
+            quantity,
+            pack,
+            boughtPrice,
+            status,
+            timestamp
+        )
     }
 
-    fun tryCreatePurchase(purchaseDto: PurchaseDto): Purchase? {
+    fun associatePurchaseDtoWithPurchaseItem(purchaseDto: PurchaseDto): List<Pair<PurchaseItemDto, PurchaseItem?>> {
         logger.info("Trying to create purchase from dto: $purchaseDto")
-        val itemsList = purchaseDto.items.map { item ->
-            logger.info("Trying to create purchase item from dto: $item")
-            tryCreatePurchaseItem(item) ?: return null
-        }
 
-        return Purchase(itemsList, purchaseDto.date)
+        return purchaseDto.items.map { item ->
+            logger.info("Trying to create purchase item from dto: $item")
+            item to tryCreatePurchaseItem(item)
+        }
     }
 }

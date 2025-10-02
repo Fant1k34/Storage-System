@@ -15,36 +15,41 @@ class DatabasePurchaseOperationHistoryRepository(
 ) {
     val logger = LoggerFactory.getLogger("DatabasePurchaseOperationHistoryRepository")
 
-    fun trySavePurchaseOperation(
-        purchaseItem: PurchaseItem,
-        date: String
-    ): Boolean {
-        val listingItem = listingItemTable.tryGetListingItemId(purchaseItem.listingItem) ?: return false
+    fun trySavePurchaseOperation(purchaseItem: PurchaseItem): Result<Long> {
+        val date = purchaseItem.date
+
+        val listingItemSavingResult = listingItemTable.trySaveListingItemAndReturnId(purchaseItem.listingItem)
+        val listingItemId =
+            listingItemSavingResult.getOrNull() ?: listingItemTable.tryGetListingItemId(purchaseItem.listingItem)
+        if (listingItemId == null) {
+            logger.error("Listing item ${purchaseItem.listingItem} does not exist in database, despite it was recently added")
+            return Result.failure(Throwable("Listing item does not exist in database"))
+        }
 
         val purchaseItemQuantity = purchaseItem.quantity.number
         val purchaseItemMeasureId = measureUnitTable.tryGetMeasureUnitId(purchaseItem.quantity.unit.unitName)
         if (purchaseItemMeasureId == null) {
             logger.error("Measure unit for purchase item ${purchaseItem.quantity.unit.unitName} does not exist in database")
-            return false
+            return Result.failure(Throwable("Measure unit for purchase item does not exist in database"))
         }
 
         val purchaseItemBoughtPrice = purchaseItem.boughtPrice.number
-        val purchaseItemBoughtPriceUnitId =
-            measureUnitTable.tryGetMeasureUnitId(purchaseItem.boughtPrice.unit.unitName)
+        val purchaseItemBoughtPriceUnitId = measureUnitTable.tryGetMeasureUnitId(purchaseItem.boughtPrice.unit.unitName)
         if (purchaseItemBoughtPriceUnitId == null) {
             logger.error("Measure unit for purchase item ${purchaseItem.boughtPrice.unit.unitName} does not exist in database")
-            return false
+            return Result.failure(Throwable("Measure unit for purchase bought price does not exist in database"))
         }
+        val lastStateChangedTimestamp = purchaseItem.lastStateChangedTimestamp
 
-        purchaseOperationHistoryTable.trySavePurchaseOperation(
-            listingItem,
+        val result = purchaseOperationHistoryTable.trySavePurchaseOperationAndReturnId(
+            date,
+            listingItemId,
             purchaseItemQuantity,
             purchaseItemMeasureId,
             purchaseItemBoughtPrice,
             purchaseItemBoughtPriceUnitId,
-            date
+            lastStateChangedTimestamp
         )
-
-        return true
+        return result
     }
 }
