@@ -21,6 +21,8 @@ data class PurchaseItemDto(
     val packWeight: Double?,
     // Package measure unit
     val packUnit: String,
+    // Number of packages
+    val packageAmount: Int,
 
     // Bought price of the item
     val boughtPrice: Double,

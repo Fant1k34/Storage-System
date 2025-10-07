@@ -2,7 +2,6 @@ package com.sklad.skladproject.repository
 
 import com.sklad.skladproject.domain.Package
 import com.sklad.skladproject.domain.PurchaseItem
-import com.sklad.skladproject.domain.PurchaseItemState
 import com.sklad.skladproject.domain.Quantity
 import com.sklad.skladproject.domain.Unit
 import com.sklad.skladproject.dto.PurchaseDto
@@ -18,11 +17,17 @@ class PurchaseBuilder {
         val packName = purchaseItemDto.packName
         if (packName == null || purchaseItemDto.packWeight == null) return null
 
-        val quantity = tryCreateQuantity(purchaseItemDto.packWeight, purchaseItemDto.packUnit)
-        return if (quantity != null) Package(packName, quantity) else null
+        val quantity = tryCreateQuantity(purchaseItemDto.packWeight, purchaseItemDto.packUnit) ?: return null
+
+        return Package(packName, quantity)
     }
 
-    private fun tryCreateQuantity(amount: Double, unitName: String): Quantity? {
+    fun tryCreatePackage(packageName: String, packageWeight: Double, packageUnit: String): Package? {
+        val quantity = tryCreateQuantity(packageWeight, packageUnit) ?: return null
+        return Package(packageName, quantity)
+    }
+
+    fun tryCreateQuantity(amount: Double, unitName: String): Quantity? {
         val measureUnit = tryCreateUnit(unitName)
 
         if (measureUnit == null) {
@@ -48,21 +53,22 @@ class PurchaseBuilder {
         val listingItem = purchaseItemDto.name
         val quantity = tryCreateQuantity(purchaseItemDto.quantity, purchaseItemDto.quantityUnit)
             ?: return null.also { logger.error("Cannot create quantity for purchase item") }
+        val packAmount = purchaseItemDto.packageAmount
         val pack = tryCreatePackage(purchaseItemDto)
             ?: return null.also { logger.error("Cannot create package for purchase item") }
         val boughtPrice = tryCreateQuantity(purchaseItemDto.boughtPrice, purchaseItemDto.boughtPriceUnit)
             ?: return null.also { logger.error("Cannot create bought price for purchase item") }
 
-        val status = PurchaseItemState.SAVED_TO_HISTORY
+//        val status = PurchaseItemState.SAVED_TO_HISTORY
         val timestamp = System.currentTimeMillis()
 
         return PurchaseItem(
             date,
             listingItem,
             quantity,
+            packAmount,
             pack,
             boughtPrice,
-            status,
             timestamp
         )
     }

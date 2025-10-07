@@ -33,7 +33,7 @@ class PackageTable(val databaseAccessRepository: DatabaseAccessRepository) {
         return false
     }
 
-    fun tryGetPackageId(name: String, weight: Double, unitId: Int): Long? {
+    fun tryGetPackageId(name: String, weight: Double, unitId: Long): Long? {
         val packageId: Long
 
         try {
@@ -42,7 +42,7 @@ class PackageTable(val databaseAccessRepository: DatabaseAccessRepository) {
                     connection.prepareStatement("SELECT id FROM PACKAGE WHERE package_name = ? AND package_weight = ? AND package_weight_unit_id = ?")
                 statement.setString(1, name)
                 statement.setDouble(2, weight)
-                statement.setInt(3, unitId)
+                statement.setLong(3, unitId)
 
                 statement.executeQuery().use { resultSet ->
                     resultSet.next()

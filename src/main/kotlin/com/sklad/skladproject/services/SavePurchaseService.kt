@@ -10,8 +10,12 @@ class SavePurchaseService(
 //    val databasePurchaseSaverRepository: DatabasePurchaseSaverRepository,
     val databasePurchaseOperationHistoryRepository: DatabasePurchaseOperationHistoryRepository
 ) {
-    fun savePurchase(purchaseItem: PurchaseItem) {
+    fun savePurchase(purchaseItem: PurchaseItem): Result<Long> {
 //            databasePurchaseSaverRepository.trySavePurchaseItem(item)
-        databasePurchaseOperationHistoryRepository.trySavePurchaseOperation(purchaseItem)
+        return databasePurchaseOperationHistoryRepository.trySavePurchaseOperation(purchaseItem)
+    }
+
+    fun tryGetPurchaseOperations(limit: Int, offset: Int): List<PurchaseItem> {
+        return databasePurchaseOperationHistoryRepository.tryGetPurchaseOperations(limit, offset)
     }
 }

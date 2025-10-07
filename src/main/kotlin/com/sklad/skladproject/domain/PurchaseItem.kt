@@ -4,8 +4,8 @@ data class PurchaseItem(
     val date: String,
     val listingItem: String,
     val quantity: Quantity,
+    val packageAmount: Int,
     val pack: Package,
     val boughtPrice: Quantity,
-    val state: PurchaseItemState,
     val lastStateChangedTimestamp: Long
 )
