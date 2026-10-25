@@ -1,5 +1,7 @@
 package com.sklad.skladproject.dto
 
+import io.swagger.v3.oas.annotations.media.Schema
+
 // Purchase operation as stored in history, with referenced names resolved for convenience
 data class PurchaseOperationDto(
     val id: Long,
@@ -24,5 +26,6 @@ data class PurchaseOperationDto(
     val currencyName: String,
 
     // Timestamp of the last state change
+    @Schema(description = "Unix time in milliseconds of the last state change", example = "1792003800000")
     val operationTimestamp: Long,
 )
