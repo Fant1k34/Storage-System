@@ -1,5 +1,6 @@
 package com.sklad.skladproject.controllers
 
+import com.sklad.skladproject.dto.PurchaseOperationDto
 import com.sklad.skladproject.dto.PurchaseRequestDto
 import com.sklad.skladproject.services.PurchaseRequestService
 import org.slf4j.LoggerFactory
@@ -8,6 +9,7 @@ import org.springframework.web.bind.annotation.GetMapping
 import org.springframework.web.bind.annotation.PostMapping
 import org.springframework.web.bind.annotation.RequestBody
 import org.springframework.web.bind.annotation.RequestMapping
+import org.springframework.web.bind.annotation.RequestParam
 import org.springframework.web.bind.annotation.ResponseBody
 import org.springframework.web.bind.annotation.RestController
 import org.springframework.web.server.ResponseStatusException
@@ -23,6 +25,26 @@ class PurchaseOperationController(
     @GetMapping("/health-check")
     fun health_check(): String {
         return "OK"
+    }
+
+    @ResponseBody
+    @GetMapping("/v1/get-all-purchases")
+    fun getAllPurchases(
+        @RequestParam("date") date: String,
+        @RequestParam("page", defaultValue = PurchaseRequestService.FIRST_PAGE.toString()) page: Int,
+        @RequestParam("pageSize", defaultValue = PurchaseRequestService.DEFAULT_PAGE_SIZE.toString()) pageSize: Int,
+    ): List<PurchaseOperationDto> {
+        logger.info("Handling get all purchases request for date $date (page $page, page size $pageSize)")
+
+        val result = purchaseRequestService.getPurchaseOperationsByDate(date, page, pageSize)
+
+        val error = result.exceptionOrNull()
+        if (error is IllegalArgumentException) {
+            logger.warn("Get all purchases request rejected: ${error.message}")
+            throw ResponseStatusException(HttpStatus.BAD_REQUEST, error.message)
+        }
+
+        return result.getOrThrow()
     }
 
     @ResponseBody

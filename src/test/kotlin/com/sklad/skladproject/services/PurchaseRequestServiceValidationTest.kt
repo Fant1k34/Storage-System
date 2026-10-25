@@ -5,7 +5,11 @@ import com.sklad.skladproject.repository.database.storage.DatabasePurchaseOperat
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.params.ParameterizedTest
 import org.junit.jupiter.params.provider.ValueSource
+import org.mockito.ArgumentMatchers.anyInt
+import org.mockito.ArgumentMatchers.anyString
+import org.mockito.Mockito.`when`
 import org.mockito.Mockito.mock
+import org.mockito.Mockito.verify
 import org.mockito.Mockito.verifyNoInteractions
 import kotlin.test.assertEquals
 import kotlin.test.assertTrue
@@ -70,6 +74,54 @@ class PurchaseRequestServiceValidationTest {
     @Test
     fun `invalid request never reaches the database`() {
         val result = service.savePurchase(validRequest.copy(quantity = -1f))
+
+        assertTrue(result.isFailure)
+        verifyNoInteractions(repository)
+    }
+
+    @Test
+    fun `purchase operations query with valid parameters passes`() {
+        assertTrue(service.validatePurchaseOperationsQuery("2026-10-25", 1, 50).isSuccess)
+    }
+
+    @ParameterizedTest
+    @ValueSource(strings = ["", "25.10.2026", "2026-10-25T14:30:00Z", "2026-02-30"])
+    fun `purchase operations query rejects non calendar dates`(date: String) {
+        val result = service.validatePurchaseOperationsQuery(date, 1, 50)
+
+        assertTrue(result.isFailure)
+        assertTrue(result.exceptionOrNull()!!.message!!.contains("Date '$date' is not valid"))
+    }
+
+    @ParameterizedTest
+    @ValueSource(ints = [0, -1])
+    fun `purchase operations query rejects page before the first one`(page: Int) {
+        assertTrue(service.validatePurchaseOperationsQuery("2026-10-25", page, 50).isFailure)
+    }
+
+    @ParameterizedTest
+    @ValueSource(ints = [0, -1, 501])
+    fun `purchase operations query rejects bad page size`(pageSize: Int) {
+        assertTrue(service.validatePurchaseOperationsQuery("2026-10-25", 1, pageSize).isFailure)
+    }
+
+    @Test
+    fun `page is converted to limit and offset`() {
+        `when`(repository.getPurchaseOperationsByDate(anyString(), anyInt(), anyInt())).thenReturn(emptyList())
+
+        service.getPurchaseOperationsByDate("2026-10-25", 1, 50)
+        verify(repository).getPurchaseOperationsByDate("2026-10-25", 50, 0)
+
+        service.getPurchaseOperationsByDate("2026-10-25", 3, 50)
+        verify(repository).getPurchaseOperationsByDate("2026-10-25", 50, 100)
+
+        service.getPurchaseOperationsByDate("2026-10-25", 2, 20)
+        verify(repository).getPurchaseOperationsByDate("2026-10-25", 20, 20)
+    }
+
+    @Test
+    fun `invalid purchase operations query never reaches the database`() {
+        val result = service.getPurchaseOperationsByDate("bad-date", 1, 50)
 
         assertTrue(result.isFailure)
         verifyNoInteractions(repository)

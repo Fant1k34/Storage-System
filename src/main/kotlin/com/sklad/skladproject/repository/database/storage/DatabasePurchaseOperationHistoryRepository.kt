@@ -1,5 +1,6 @@
 package com.sklad.skladproject.repository.database.storage
 
+import com.sklad.skladproject.dto.PurchaseOperationDto
 import com.sklad.skladproject.domain.PurchaseRequest
 import com.sklad.skladproject.repository.database.storage.tables.ItemTable
 import com.sklad.skladproject.repository.database.storage.tables.MeasureUnitTable
@@ -57,4 +58,8 @@ class DatabasePurchaseOperationHistoryRepository(
         )
         return purchaseRequestId
     }
+
+
+    fun getPurchaseOperationsByDate(date: String, limit: Int, offset: Int): List<PurchaseOperationDto> =
+        purchaseOperationHistoryTable.tryGetPurchaseOperationsByDate(date, limit, offset)
 }
