@@ -33,7 +33,7 @@ class ItemTable(val databaseAccessRepository: DatabaseAccessRepository) {
         try {
             databaseAccessRepository.getDataSource().connection.use { connection ->
                 val statement =
-                    connection.prepareStatement("INSERT INTO ITEM (item_name) VALUES (?) ON CONFLICT (item_name) DO NOTHING RETURNING id")
+                    connection.prepareStatement("INSERT INTO ITEM (item_name) VALUES (?) ON CONFLICT (item_name) DO UPDATE SET item_name = EXCLUDED.item_name RETURNING id")
                 statement.setString(1, item)
 
                 val resultSet = statement.executeQuery()
@@ -46,7 +46,7 @@ class ItemTable(val databaseAccessRepository: DatabaseAccessRepository) {
                 return Result.success(operationId)
             }
         } catch (e: Throwable) {
-            logger.warn("Error saving new item $item\n. It may already exist", e)
+            logger.warn("Error saving new item $item\n", e)
 
             return Result.failure(Throwable(e))
         }

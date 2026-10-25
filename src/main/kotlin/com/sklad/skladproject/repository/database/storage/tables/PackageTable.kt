@@ -33,6 +33,35 @@ class PackageTable(val databaseAccessRepository: DatabaseAccessRepository) {
         return false
     }
 
+    fun trySavePackageAndReturnId(name: String, weight: Double, unitId: Long): Result<Long> {
+        try {
+            databaseAccessRepository.getDataSource().connection.use { connection ->
+                val statement =
+                    connection.prepareStatement("INSERT INTO PACKAGE (package_name, package_weight, package_weight_unit_id) VALUES (?, ?, ?) ON CONFLICT (package_name, package_weight, package_weight_unit_id) DO UPDATE SET package_name = EXCLUDED.package_name RETURNING id")
+                statement.setString(1, name)
+                statement.setDouble(2, weight)
+                statement.setLong(3, unitId)
+
+                val resultSet = statement.executeQuery()
+
+                resultSet.next()
+                val packageId = resultSet.getLong(1)
+
+                statement.close()
+
+                logger.info("New Package $name with $weight (measure unit id: $unitId) is saved to table PACKAGE in database")
+                return Result.success(packageId)
+            }
+        } catch (e: Throwable) {
+            logger.warn(
+                "Error saving new package $name with $weight (measure unit id: $unitId)\n",
+                e
+            )
+
+            return Result.failure(Throwable(e))
+        }
+    }
+
     fun checkIfPackageIdExists(id: Long): Boolean? {
         try {
             databaseAccessRepository.getDataSource().connection.use { connection ->

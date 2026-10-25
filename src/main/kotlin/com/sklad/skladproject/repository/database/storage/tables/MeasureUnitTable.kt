@@ -13,7 +13,7 @@ class MeasureUnitTable(val databaseAccessRepository: DatabaseAccessRepository) {
         try {
             databaseAccessRepository.getDataSource().connection.use { connection ->
                 val statement =
-                    connection.prepareStatement("INSERT INTO UNIT (unit_name) VALUES (?) ON CONFLICT (unit_name) DO NOTHING RETURNING id")
+                    connection.prepareStatement("INSERT INTO UNIT (unit_name) VALUES (?) ON CONFLICT (unit_name) DO UPDATE SET unit_name = EXCLUDED.unit_name RETURNING id")
                 statement.setString(1, unitName)
 
                 val resultSet = statement.executeQuery()
