@@ -13,8 +13,6 @@ data class PurchaseRequest(
 
     // Package ID
     val packageId: Long,
-    // Number of packages
-    val packageAmount: Int,
 
     // Bought price of the item
     val boughtPrice: Float,

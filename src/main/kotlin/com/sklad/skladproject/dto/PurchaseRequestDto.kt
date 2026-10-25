@@ -20,9 +20,6 @@ data class PurchaseRequestDto(
     // Package ID
     @Schema(description = "Id of an existing package", example = "1")
     val packageId: Long,
-    // Number of packages
-    @Schema(description = "Number of packages, must be positive", example = "3", minimum = "1")
-    val packageAmount: Int,
 
     // Bought price of the item
     @Schema(description = "Bought price, must be positive", example = "100", exclusiveMinimum = true, minimum = "0")

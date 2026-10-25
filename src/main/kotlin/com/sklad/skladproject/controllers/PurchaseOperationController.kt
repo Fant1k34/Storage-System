@@ -10,7 +10,6 @@ import io.swagger.v3.oas.annotations.media.Schema
 import io.swagger.v3.oas.annotations.responses.ApiResponse
 import io.swagger.v3.oas.annotations.tags.Tag
 import org.slf4j.LoggerFactory
-import org.springframework.http.HttpStatus
 import org.springframework.web.bind.annotation.GetMapping
 import org.springframework.web.bind.annotation.PostMapping
 import org.springframework.web.bind.annotation.RequestBody
@@ -18,7 +17,6 @@ import org.springframework.web.bind.annotation.RequestMapping
 import org.springframework.web.bind.annotation.RequestParam
 import org.springframework.web.bind.annotation.ResponseBody
 import org.springframework.web.bind.annotation.RestController
-import org.springframework.web.server.ResponseStatusException
 
 @Tag(name = "Purchases", description = "Purchase operation history")
 @RestController
@@ -60,18 +58,15 @@ class PurchaseOperationController(
 
         val result = purchaseRequestService.getPurchaseOperationsByDate(date, page, pageSize)
 
-        val error = result.exceptionOrNull()
-        if (error is IllegalArgumentException) {
+        return result.getOrElse { error ->
             logger.warn("Get all purchases request rejected: ${error.message}")
-            throw ResponseStatusException(HttpStatus.BAD_REQUEST, error.message)
+            throw error.toResponseStatusException()
         }
-
-        return result.getOrThrow()
     }
 
     @Operation(
         summary = "Record a purchase operation",
-        description = "Rules: `date` is ISO 8601 (date or date-time), `quantity`, `boughtPrice` and `packageAmount` are positive, " +
+        description = "Rules: `date` is ISO 8601 (date or date-time), `quantity` and `boughtPrice` are positive, " +
                 "and `itemId`, `quantityUnitId`, `packageId`, `currency` must reference existing records."
     )
     @ApiResponse(responseCode = "200", description = "`true` if saved, `false` if a referenced id does not exist or the database failed")
@@ -87,7 +82,7 @@ class PurchaseOperationController(
         val error = result.exceptionOrNull()
         if (error is IllegalArgumentException) {
             logger.warn("Purchase request rejected: ${error.message}")
-            throw ResponseStatusException(HttpStatus.BAD_REQUEST, error.message)
+            throw error.toResponseStatusException()
         }
 
         return result.isSuccess

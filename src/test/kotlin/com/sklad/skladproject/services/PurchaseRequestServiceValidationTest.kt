@@ -24,7 +24,6 @@ class PurchaseRequestServiceValidationTest {
         quantity = 2.5f,
         quantityUnitId = 1,
         packageId = 1,
-        packageAmount = 3,
         boughtPrice = 100f,
         currency = 1,
     )
@@ -52,23 +51,14 @@ class PurchaseRequestServiceValidationTest {
         assertTrue(result.exceptionOrNull()!!.message!!.contains("Bought price must be positive"))
     }
 
-    @ParameterizedTest
-    @ValueSource(ints = [0, -1])
-    fun `non positive package amount is rejected`(amount: Int) {
-        val result = service.validatePurchaseRequest(validRequest.copy(packageAmount = amount))
-
-        assertTrue(result.isFailure)
-        assertTrue(result.exceptionOrNull()!!.message!!.contains("Package amount must be positive"))
-    }
-
     @Test
     fun `all problems are reported together`() {
         val result = service.validatePurchaseRequest(
-            validRequest.copy(date = "25.10.2026", quantity = 0f, boughtPrice = -1f, packageAmount = 0)
+            validRequest.copy(date = "25.10.2026", quantity = 0f, boughtPrice = -1f)
         )
 
         val message = result.exceptionOrNull()!!.message!!
-        assertEquals(4, message.split("; ").size, "expected four errors in: $message")
+        assertEquals(3, message.split("; ").size, "expected three errors in: $message")
     }
 
     @Test

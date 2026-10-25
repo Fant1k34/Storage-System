@@ -14,7 +14,7 @@ class DatabaseCurrencyRepository(
     fun trySaveCurrency(currency: String): Result<Long> {
         if (currency.isBlank()) {
             logger.error("Currency name must not be blank")
-            return Result.failure(Throwable("Currency name must not be blank"))
+            return Result.failure(IllegalArgumentException("Currency name must not be blank"))
         }
 
         return currencyTable.trySaveCurrencyAndReturnId(currency)

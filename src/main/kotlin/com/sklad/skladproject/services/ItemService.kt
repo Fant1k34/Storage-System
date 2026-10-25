@@ -13,8 +13,8 @@ class ItemService(
         return itemRequestDto.name
     }
 
-    fun saveItem(item: String): Result<Long> {
-        return databaseItemRepository.trySaveItem(item)
+    fun saveItem(item: String): Result<ItemDto> {
+        return databaseItemRepository.trySaveItem(item).map { id -> ItemDto(id = id, name = item) }
     }
 
     fun getAllItems(): List<ItemDto> = databaseItemRepository.getAllItems()

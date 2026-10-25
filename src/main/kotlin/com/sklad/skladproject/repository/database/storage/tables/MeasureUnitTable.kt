@@ -40,12 +40,11 @@ class MeasureUnitTable(val databaseAccessRepository: DatabaseAccessRepository) {
                 statement.setLong(1, id)
 
                 val resultSet = statement.executeQuery()
-                resultSet.next()
-                val result = resultSet.fetchSize
+                val exists = resultSet.next()
 
                 statement.close()
 
-                return result == 1
+                return exists
             }
         } catch (e: Throwable) {
             logger.warn("Error checking if measure_unit_id=$id exists in database", e)
@@ -114,6 +113,28 @@ class MeasureUnitTable(val databaseAccessRepository: DatabaseAccessRepository) {
             }
         } catch (e: Throwable) {
             logger.warn("Error getting measure units by name $name from table UNIT", e)
+            return null
+        }
+    }
+
+    fun tryGetMeasureUnitById(id: Long): MeasureUnitDto? {
+        try {
+            databaseAccessRepository.getDataSource().connection.use { connection ->
+                val statement = connection.prepareStatement("SELECT id, unit_name FROM UNIT WHERE id = ?")
+                statement.setLong(1, id)
+
+                val resultSet = statement.executeQuery()
+                val result = if (resultSet.next()) {
+                    MeasureUnitDto(id = resultSet.getLong(1), name = resultSet.getString(2))
+                } else {
+                    null
+                }
+
+                statement.close()
+                return result
+            }
+        } catch (e: Throwable) {
+            logger.warn("Error getting measure unit by id $id from table UNIT", e)
             return null
         }
     }

@@ -14,7 +14,6 @@ class PurchaseOperationHistoryTable(val databaseAccessRepository: DatabaseAccess
         listingItemId: Long,
         itemQuantityNumber: Float,
         itemQuantityUnitId: Long,
-        packageAmount: Int,
         packageId: Long,
         boughtPrice: Float,
         boughtPriceUnitId: Long,
@@ -23,16 +22,15 @@ class PurchaseOperationHistoryTable(val databaseAccessRepository: DatabaseAccess
         try {
             databaseAccessRepository.getDataSource().connection.use { connection ->
                 val statement =
-                    connection.prepareStatement("INSERT INTO PURCHASE_OPERATION_HISTORY (item_id, item_quantity, item_unit, package_amount, package_id, bought_price, currency, date, operation_timestamp) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?) RETURNING id")
+                    connection.prepareStatement("INSERT INTO PURCHASE_OPERATION_HISTORY (item_id, item_quantity, item_unit, package_id, bought_price, currency, date, operation_timestamp) VALUES (?, ?, ?, ?, ?, ?, ?, ?) RETURNING id")
                 statement.setLong(1, listingItemId)
                 statement.setFloat(2, itemQuantityNumber)
                 statement.setLong(3, itemQuantityUnitId)
-                statement.setInt(4, packageAmount)
-                statement.setLong(5, packageId)
-                statement.setFloat(6, boughtPrice)
-                statement.setLong(7, boughtPriceUnitId)
-                statement.setString(8, date)
-                statement.setLong(9, lastStateChangedTimestamp)
+                statement.setLong(4, packageId)
+                statement.setFloat(5, boughtPrice)
+                statement.setLong(6, boughtPriceUnitId)
+                statement.setString(7, date)
+                statement.setLong(8, lastStateChangedTimestamp)
 
                 val resultSet = statement.executeQuery()
                 resultSet.next()
@@ -58,7 +56,7 @@ class PurchaseOperationHistoryTable(val databaseAccessRepository: DatabaseAccess
                     "SELECT H.id, H.date, " +
                             "H.item_id, ITEM.item_name, " +
                             "H.item_quantity, H.item_unit, ITEM_UNIT.unit_name, " +
-                            "H.package_id, PACKAGE.package_name, PACKAGE.package_weight, PACKAGE_UNIT.unit_name, H.package_amount, " +
+                            "H.package_id, PACKAGE.package_name, PACKAGE.package_weight, PACKAGE_UNIT.unit_name, " +
                             "H.bought_price, H.currency, CURRENCY.currency_name, " +
                             "H.operation_timestamp " +
                             "FROM PURCHASE_OPERATION_HISTORY AS H " +
@@ -91,11 +89,10 @@ class PurchaseOperationHistoryTable(val databaseAccessRepository: DatabaseAccess
                             packageName = resultSet.getString(9),
                             packageWeight = resultSet.getDouble(10),
                             packageWeightUnitName = resultSet.getString(11),
-                            packageAmount = resultSet.getInt(12),
-                            boughtPrice = resultSet.getDouble(13),
-                            currencyId = resultSet.getLong(14),
-                            currencyName = resultSet.getString(15),
-                            operationTimestamp = resultSet.getLong(16),
+                            boughtPrice = resultSet.getDouble(12),
+                            currencyId = resultSet.getLong(13),
+                            currencyName = resultSet.getString(14),
+                            operationTimestamp = resultSet.getLong(15),
                         )
                     )
                 }

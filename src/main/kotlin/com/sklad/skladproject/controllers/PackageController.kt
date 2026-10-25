@@ -5,6 +5,7 @@ import com.sklad.skladproject.dto.PackageRequestDto
 import com.sklad.skladproject.services.PackageService
 import io.swagger.v3.oas.annotations.Operation
 import io.swagger.v3.oas.annotations.Parameter
+import io.swagger.v3.oas.annotations.media.Content
 import io.swagger.v3.oas.annotations.responses.ApiResponse
 import io.swagger.v3.oas.annotations.tags.Tag
 import org.slf4j.LoggerFactory
@@ -24,17 +25,19 @@ class PackageController(
 ) {
     private val logger = LoggerFactory.getLogger("PackageController")
 
-    @Operation(summary = "Add a package", description = "Idempotent. `weightUnitId` must reference an existing measure unit, otherwise `false` is returned.")
-    @ApiResponse(responseCode = "200", description = "`true` if the record exists after the call (created or already present), `false` on database failure")
+    @Operation(summary = "Add a package", description = "Idempotent. `weightUnitId` must reference an existing measure unit, otherwise 400 is returned.")
+    @ApiResponse(responseCode = "200", description = "The record as stored (created or already present), with its id")
+    @ApiResponse(responseCode = "400", description = "Validation failed; `message` explains why", content = [Content()])
+    @ApiResponse(responseCode = "500", description = "Database failure", content = [Content()])
     @ResponseBody
     @PostMapping("/v1/add-package")
-    fun addPackage(@RequestBody packageRequest: PackageRequestDto): Boolean {
+    fun addPackage(@RequestBody packageRequest: PackageRequestDto): PackageDto {
         logger.info("Handling add package request $packageRequest")
 
         val packageDomain = packageService.convertToPackage(packageRequest)
         val result = packageService.savePackage(packageDomain)
 
-        return result.isSuccess
+        return result.getOrElse { throw it.toResponseStatusException() }
     }
 
     @Operation(summary = "List all packages", description = "Ordered by id, with the weight unit name resolved.")

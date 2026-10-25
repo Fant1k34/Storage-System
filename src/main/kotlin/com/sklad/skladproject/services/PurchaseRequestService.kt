@@ -19,7 +19,6 @@ class PurchaseRequestService(
             quantity = purchaseRequestDto.quantity,
             quantityUnitId = purchaseRequestDto.quantityUnitId,
             packageId = purchaseRequestDto.packageId,
-            packageAmount = purchaseRequestDto.packageAmount,
             boughtPrice = purchaseRequestDto.boughtPrice,
             currency = purchaseRequestDto.currency,
         )
@@ -37,9 +36,6 @@ class PurchaseRequestService(
         }
         if (!(purchaseRequest.boughtPrice > 0)) {
             errors.add("Bought price must be positive, got ${purchaseRequest.boughtPrice}")
-        }
-        if (purchaseRequest.packageAmount <= 0) {
-            errors.add("Package amount must be positive, got ${purchaseRequest.packageAmount}")
         }
 
         if (errors.isNotEmpty()) {

@@ -27,16 +27,18 @@ class CurrencyController(
     private val logger = LoggerFactory.getLogger("CurrencyController")
 
     @Operation(summary = "Add a currency", description = "Idempotent: an existing a currency is not duplicated.")
-    @ApiResponse(responseCode = "200", description = "`true` if the record exists after the call (created or already present), `false` on database failure")
+    @ApiResponse(responseCode = "200", description = "The record as stored (created or already present), with its id")
+    @ApiResponse(responseCode = "400", description = "Validation failed; `message` explains why", content = [Content()])
+    @ApiResponse(responseCode = "500", description = "Database failure", content = [Content()])
     @ResponseBody
     @PostMapping("/v1/add-currency")
-    fun addCurrency(@RequestBody currencyRequest: CurrencyRequestDto): Boolean {
+    fun addCurrency(@RequestBody currencyRequest: CurrencyRequestDto): CurrencyDto {
         logger.info("Handling add currency request $currencyRequest")
 
         val currencyDomain = currencyService.convertToCurrency(currencyRequest)
         val result = currencyService.saveCurrency(currencyDomain)
 
-        return result.isSuccess
+        return result.getOrElse { throw it.toResponseStatusException() }
     }
 
     @Operation(summary = "List all currencies", description = "Ordered by id.")

@@ -13,8 +13,8 @@ class MeasureUnitService(
         return measureUnitRequestDto.name
     }
 
-    fun saveMeasureUnit(measureUnit: String): Result<Long> {
-        return databaseMeasureUnitRepository.trySaveMeasureUnit(measureUnit)
+    fun saveMeasureUnit(measureUnit: String): Result<MeasureUnitDto> {
+        return databaseMeasureUnitRepository.trySaveMeasureUnit(measureUnit).map { id -> MeasureUnitDto(id = id, name = measureUnit) }
     }
 
     fun getAllMeasureUnits(): List<MeasureUnitDto> = databaseMeasureUnitRepository.getAllMeasureUnits()

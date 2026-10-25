@@ -19,7 +19,6 @@ data class PurchaseOperationDto(
     val packageName: String,
     val packageWeight: Double,
     val packageWeightUnitName: String,
-    val packageAmount: Int,
 
     val boughtPrice: Double,
     val currencyId: Long,

@@ -70,12 +70,11 @@ class PackageTable(val databaseAccessRepository: DatabaseAccessRepository) {
                 statement.setLong(1, id)
 
                 val resultSet = statement.executeQuery()
-                resultSet.next()
-                val result = resultSet.fetchSize
+                val exists = resultSet.next()
 
                 statement.close()
 
-                return result == 1
+                return exists
             }
         } catch (e: Throwable) {
             logger.warn("Error checking if package_id=$id exists in database", e)

@@ -14,7 +14,7 @@ class DatabaseItemRepository(
     fun trySaveItem(item: String): Result<Long> {
         if (item.isBlank()) {
             logger.error("Item name must not be blank")
-            return Result.failure(Throwable("Item name must not be blank"))
+            return Result.failure(IllegalArgumentException("Item name must not be blank"))
         }
 
         return itemTable.trySaveListingItemAndReturnId(item)

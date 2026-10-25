@@ -13,8 +13,8 @@ class CurrencyService(
         return currencyRequestDto.name
     }
 
-    fun saveCurrency(currency: String): Result<Long> {
-        return databaseCurrencyRepository.trySaveCurrency(currency)
+    fun saveCurrency(currency: String): Result<CurrencyDto> {
+        return databaseCurrencyRepository.trySaveCurrency(currency).map { id -> CurrencyDto(id = id, name = currency) }
     }
 
     fun getAllCurrencies(): List<CurrencyDto> = databaseCurrencyRepository.getAllCurrencies()

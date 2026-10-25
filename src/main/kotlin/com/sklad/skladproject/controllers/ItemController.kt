@@ -27,16 +27,18 @@ class ItemController(
     private val logger = LoggerFactory.getLogger("ItemController")
 
     @Operation(summary = "Add an item", description = "Idempotent: an existing an item is not duplicated.")
-    @ApiResponse(responseCode = "200", description = "`true` if the record exists after the call (created or already present), `false` on database failure")
+    @ApiResponse(responseCode = "200", description = "The record as stored (created or already present), with its id")
+    @ApiResponse(responseCode = "400", description = "Validation failed; `message` explains why", content = [Content()])
+    @ApiResponse(responseCode = "500", description = "Database failure", content = [Content()])
     @ResponseBody
     @PostMapping("/v1/add-item")
-    fun addItem(@RequestBody itemRequest: ItemRequestDto): Boolean {
+    fun addItem(@RequestBody itemRequest: ItemRequestDto): ItemDto {
         logger.info("Handling add item request $itemRequest")
 
         val itemDomain = itemService.convertToItem(itemRequest)
         val result = itemService.saveItem(itemDomain)
 
-        return result.isSuccess
+        return result.getOrElse { throw it.toResponseStatusException() }
     }
 
     @Operation(summary = "List all items", description = "Ordered by id.")

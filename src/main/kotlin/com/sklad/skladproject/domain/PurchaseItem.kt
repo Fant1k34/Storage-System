@@ -5,7 +5,6 @@ data class PurchaseItem(
     val listingItem: String,
     val quantityAmount: Float,
     val quantityMeasureId: Long,
-    val packageAmount: Int,
     val packageId: Long,
     val price: Float,
     val currencyId: Long

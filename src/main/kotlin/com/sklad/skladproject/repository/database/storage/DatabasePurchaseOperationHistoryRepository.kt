@@ -50,7 +50,6 @@ class DatabasePurchaseOperationHistoryRepository(
             listingItemId = purchaseRequest.itemId,
             itemQuantityNumber = purchaseRequest.quantity,
             itemQuantityUnitId = purchaseRequest.quantityUnitId,
-            packageAmount = purchaseRequest.packageAmount,
             packageId = purchaseRequest.packageId,
             boughtPrice = purchaseRequest.boughtPrice,
             boughtPriceUnitId = purchaseRequest.currency,

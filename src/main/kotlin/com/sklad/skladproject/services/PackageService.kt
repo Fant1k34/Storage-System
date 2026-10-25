@@ -21,8 +21,17 @@ class PackageService(
         )
     }
 
-    fun savePackage(pack: Package): Result<Long> {
-        return databasePackageRepository.trySavePackage(pack)
+    fun savePackage(pack: Package): Result<PackageDto> {
+        return databasePackageRepository.trySavePackage(pack).map { id ->
+            val unitName = databasePackageRepository.getMeasureUnitById(pack.weight.unitId)?.name ?: ""
+            PackageDto(
+                id = id,
+                name = pack.name,
+                weight = pack.weight.number,
+                weightUnitId = pack.weight.unitId,
+                weightUnitName = unitName,
+            )
+        }
     }
 
     fun getAllPackages(): List<PackageDto> = databasePackageRepository.getAllPackages()

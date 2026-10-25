@@ -14,7 +14,7 @@ class DatabaseMeasureUnitRepository(
     fun trySaveMeasureUnit(measureUnit: String): Result<Long> {
         if (measureUnit.isBlank()) {
             logger.error("Measure unit name must not be blank")
-            return Result.failure(Throwable("Measure unit name must not be blank"))
+            return Result.failure(IllegalArgumentException("Measure unit name must not be blank"))
         }
 
         return measureUnitTable.trySaveMeasureUnitAndReturnId(measureUnit)

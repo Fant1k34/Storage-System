@@ -27,16 +27,18 @@ class MeasureUnitController(
     private val logger = LoggerFactory.getLogger("MeasureUnitController")
 
     @Operation(summary = "Add a measure unit", description = "Idempotent: an existing a measure unit is not duplicated.")
-    @ApiResponse(responseCode = "200", description = "`true` if the record exists after the call (created or already present), `false` on database failure")
+    @ApiResponse(responseCode = "200", description = "The record as stored (created or already present), with its id")
+    @ApiResponse(responseCode = "400", description = "Validation failed; `message` explains why", content = [Content()])
+    @ApiResponse(responseCode = "500", description = "Database failure", content = [Content()])
     @ResponseBody
     @PostMapping("/v1/add-measure")
-    fun addMeasureUnit(@RequestBody measureUnitRequest: MeasureUnitRequestDto): Boolean {
+    fun addMeasureUnit(@RequestBody measureUnitRequest: MeasureUnitRequestDto): MeasureUnitDto {
         logger.info("Handling add measure unit request $measureUnitRequest")
 
         val measureUnitDomain = measureUnitService.convertToMeasureUnit(measureUnitRequest)
         val result = measureUnitService.saveMeasureUnit(measureUnitDomain)
 
-        return result.isSuccess
+        return result.getOrElse { throw it.toResponseStatusException() }
     }
 
     @Operation(summary = "List all measure units", description = "Ordered by id.")
