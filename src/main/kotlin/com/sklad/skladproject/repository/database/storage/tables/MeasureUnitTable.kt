@@ -1,9 +1,10 @@
 package com.sklad.skladproject.repository.database.storage.tables
 
+import com.sklad.skladproject.dto.MeasureUnitDto
 import com.sklad.skladproject.repository.database.storage.DatabaseAccessRepository
+import kotlin.use
 import org.slf4j.LoggerFactory
 import org.springframework.stereotype.Repository
-import kotlin.use
 
 @Repository
 class MeasureUnitTable(val databaseAccessRepository: DatabaseAccessRepository) {
@@ -73,5 +74,47 @@ class MeasureUnitTable(val databaseAccessRepository: DatabaseAccessRepository) {
         }
 
         return packUnitId
+    }
+
+    fun tryGetAllMeasureUnits(): List<MeasureUnitDto> {
+        try {
+            databaseAccessRepository.getDataSource().connection.use { connection ->
+                val statement = connection.prepareStatement("SELECT id, unit_name FROM UNIT ORDER BY id")
+
+                val result = mutableListOf<MeasureUnitDto>()
+                val resultSet = statement.executeQuery()
+                while (resultSet.next()) {
+                    result.add(MeasureUnitDto(id = resultSet.getLong(1), name = resultSet.getString(2)))
+                }
+
+                statement.close()
+                return result
+            }
+        } catch (e: Throwable) {
+            logger.warn("Error getting all measure units from table UNIT", e)
+            return emptyList()
+        }
+    }
+
+    fun tryGetMeasureUnitByName(name: String): MeasureUnitDto? {
+        try {
+            databaseAccessRepository.getDataSource().connection.use { connection ->
+                val statement = connection.prepareStatement("SELECT id, unit_name FROM UNIT WHERE unit_name = ?")
+                statement.setString(1, name)
+
+                val resultSet = statement.executeQuery()
+                val result = if (resultSet.next()) {
+                    MeasureUnitDto(id = resultSet.getLong(1), name = resultSet.getString(2))
+                } else {
+                    null
+                }
+
+                statement.close()
+                return result
+            }
+        } catch (e: Throwable) {
+            logger.warn("Error getting measure units by name $name from table UNIT", e)
+            return null
+        }
     }
 }

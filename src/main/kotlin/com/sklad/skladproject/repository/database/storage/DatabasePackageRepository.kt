@@ -1,6 +1,7 @@
 package com.sklad.skladproject.repository.database.storage
 
 import com.sklad.skladproject.domain.Package
+import com.sklad.skladproject.dto.PackageDto
 import com.sklad.skladproject.repository.database.storage.tables.MeasureUnitTable
 import com.sklad.skladproject.repository.database.storage.tables.PackageTable
 import org.slf4j.LoggerFactory
@@ -26,4 +27,8 @@ class DatabasePackageRepository(
             unitId = pack.weight.unitId
         )
     }
+
+    fun getAllPackages(): List<PackageDto> = packageTable.tryGetAllPackages()
+
+    fun getPackagesByName(name: String): List<PackageDto> = packageTable.tryGetPackagesByName(name)
 }

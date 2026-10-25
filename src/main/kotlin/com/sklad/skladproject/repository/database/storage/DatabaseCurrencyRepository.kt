@@ -1,5 +1,6 @@
 package com.sklad.skladproject.repository.database.storage
 
+import com.sklad.skladproject.dto.CurrencyDto
 import com.sklad.skladproject.repository.database.storage.tables.CurrencyTable
 import org.slf4j.LoggerFactory
 import org.springframework.stereotype.Repository
@@ -18,4 +19,8 @@ class DatabaseCurrencyRepository(
 
         return currencyTable.trySaveCurrencyAndReturnId(currency)
     }
+
+    fun getAllCurrencies(): List<CurrencyDto> = currencyTable.tryGetAllCurrencies()
+
+    fun getCurrencyByName(name: String): CurrencyDto? = currencyTable.tryGetCurrencyByName(name)
 }

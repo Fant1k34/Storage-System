@@ -1,5 +1,6 @@
 package com.sklad.skladproject.repository.database.storage
 
+import com.sklad.skladproject.dto.MeasureUnitDto
 import com.sklad.skladproject.repository.database.storage.tables.MeasureUnitTable
 import org.slf4j.LoggerFactory
 import org.springframework.stereotype.Repository
@@ -18,4 +19,8 @@ class DatabaseMeasureUnitRepository(
 
         return measureUnitTable.trySaveMeasureUnitAndReturnId(measureUnit)
     }
+
+    fun getAllMeasureUnits(): List<MeasureUnitDto> = measureUnitTable.tryGetAllMeasureUnits()
+
+    fun getMeasureUnitByName(name: String): MeasureUnitDto? = measureUnitTable.tryGetMeasureUnitByName(name)
 }

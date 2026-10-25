@@ -1,9 +1,10 @@
 package com.sklad.skladproject.repository.database.storage.tables
 
+import com.sklad.skladproject.dto.CurrencyDto
 import com.sklad.skladproject.repository.database.storage.DatabaseAccessRepository
+import kotlin.use
 import org.slf4j.LoggerFactory
 import org.springframework.stereotype.Repository
-import kotlin.use
 
 @Repository
 class CurrencyTable(val databaseAccessRepository: DatabaseAccessRepository) {
@@ -49,6 +50,48 @@ class CurrencyTable(val databaseAccessRepository: DatabaseAccessRepository) {
             logger.warn("Error saving new currency id for name $currencyName\n", e)
 
             return Result.failure(Throwable(e))
+        }
+    }
+
+    fun tryGetAllCurrencies(): List<CurrencyDto> {
+        try {
+            databaseAccessRepository.getDataSource().connection.use { connection ->
+                val statement = connection.prepareStatement("SELECT id, currency_name FROM CURRENCY ORDER BY id")
+
+                val result = mutableListOf<CurrencyDto>()
+                val resultSet = statement.executeQuery()
+                while (resultSet.next()) {
+                    result.add(CurrencyDto(id = resultSet.getLong(1), name = resultSet.getString(2)))
+                }
+
+                statement.close()
+                return result
+            }
+        } catch (e: Throwable) {
+            logger.warn("Error getting all currencies from table CURRENCY", e)
+            return emptyList()
+        }
+    }
+
+    fun tryGetCurrencyByName(name: String): CurrencyDto? {
+        try {
+            databaseAccessRepository.getDataSource().connection.use { connection ->
+                val statement = connection.prepareStatement("SELECT id, currency_name FROM CURRENCY WHERE currency_name = ?")
+                statement.setString(1, name)
+
+                val resultSet = statement.executeQuery()
+                val result = if (resultSet.next()) {
+                    CurrencyDto(id = resultSet.getLong(1), name = resultSet.getString(2))
+                } else {
+                    null
+                }
+
+                statement.close()
+                return result
+            }
+        } catch (e: Throwable) {
+            logger.warn("Error getting currencies by name $name from table CURRENCY", e)
+            return null
         }
     }
 }

@@ -1,9 +1,10 @@
 package com.sklad.skladproject.repository.database.storage.tables
 
+import com.sklad.skladproject.dto.ItemDto
 import com.sklad.skladproject.repository.database.storage.DatabaseAccessRepository
+import kotlin.use
 import org.slf4j.LoggerFactory
 import org.springframework.stereotype.Repository
-import kotlin.use
 
 @Repository
 class ItemTable(val databaseAccessRepository: DatabaseAccessRepository) {
@@ -73,5 +74,47 @@ class ItemTable(val databaseAccessRepository: DatabaseAccessRepository) {
         }
 
         return itemId
+    }
+
+    fun tryGetAllItems(): List<ItemDto> {
+        try {
+            databaseAccessRepository.getDataSource().connection.use { connection ->
+                val statement = connection.prepareStatement("SELECT id, item_name FROM ITEM ORDER BY id")
+
+                val result = mutableListOf<ItemDto>()
+                val resultSet = statement.executeQuery()
+                while (resultSet.next()) {
+                    result.add(ItemDto(id = resultSet.getLong(1), name = resultSet.getString(2)))
+                }
+
+                statement.close()
+                return result
+            }
+        } catch (e: Throwable) {
+            logger.warn("Error getting all items from table ITEM", e)
+            return emptyList()
+        }
+    }
+
+    fun tryGetItemByName(name: String): ItemDto? {
+        try {
+            databaseAccessRepository.getDataSource().connection.use { connection ->
+                val statement = connection.prepareStatement("SELECT id, item_name FROM ITEM WHERE item_name = ?")
+                statement.setString(1, name)
+
+                val resultSet = statement.executeQuery()
+                val result = if (resultSet.next()) {
+                    ItemDto(id = resultSet.getLong(1), name = resultSet.getString(2))
+                } else {
+                    null
+                }
+
+                statement.close()
+                return result
+            }
+        } catch (e: Throwable) {
+            logger.warn("Error getting items by name $name from table ITEM", e)
+            return null
+        }
     }
 }

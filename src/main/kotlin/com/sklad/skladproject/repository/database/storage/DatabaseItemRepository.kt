@@ -1,5 +1,6 @@
 package com.sklad.skladproject.repository.database.storage
 
+import com.sklad.skladproject.dto.ItemDto
 import com.sklad.skladproject.repository.database.storage.tables.ItemTable
 import org.slf4j.LoggerFactory
 import org.springframework.stereotype.Repository
@@ -18,4 +19,8 @@ class DatabaseItemRepository(
 
         return itemTable.trySaveListingItemAndReturnId(item)
     }
+
+    fun getAllItems(): List<ItemDto> = itemTable.tryGetAllItems()
+
+    fun getItemByName(name: String): ItemDto? = itemTable.tryGetItemByName(name)
 }

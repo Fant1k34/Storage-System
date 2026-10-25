@@ -1,5 +1,6 @@
 package com.sklad.skladproject.services
 
+import com.sklad.skladproject.dto.MeasureUnitDto
 import com.sklad.skladproject.dto.MeasureUnitRequestDto
 import com.sklad.skladproject.repository.database.storage.DatabaseMeasureUnitRepository
 import org.springframework.stereotype.Service
@@ -15,4 +16,8 @@ class MeasureUnitService(
     fun saveMeasureUnit(measureUnit: String): Result<Long> {
         return databaseMeasureUnitRepository.trySaveMeasureUnit(measureUnit)
     }
+
+    fun getAllMeasureUnits(): List<MeasureUnitDto> = databaseMeasureUnitRepository.getAllMeasureUnits()
+
+    fun getMeasureUnitByName(name: String): MeasureUnitDto? = databaseMeasureUnitRepository.getMeasureUnitByName(name)
 }

@@ -24,9 +24,33 @@ class PurchaseRequestService(
         )
     }
 
-    fun savePurchase(purchaseRequest: PurchaseRequest): Result<Long> {
-        val result = databasePurchaseOperationHistoryRepository.trySavePurchase(purchaseRequest)
+    // All problems are collected into one message, so the client can fix them in a single round trip
+    fun validatePurchaseRequest(purchaseRequest: PurchaseRequest): Result<Unit> {
+        val errors = mutableListOf<String>()
 
-        return result
+        if (!Iso8601DateValidator.isValid(purchaseRequest.date)) {
+            errors.add("Date '${purchaseRequest.date}' is not valid. Expected format: ${Iso8601DateValidator.EXPECTED_FORMAT_DESCRIPTION}")
+        }
+        if (!(purchaseRequest.quantity > 0)) {
+            errors.add("Quantity must be positive, got ${purchaseRequest.quantity}")
+        }
+        if (!(purchaseRequest.boughtPrice > 0)) {
+            errors.add("Bought price must be positive, got ${purchaseRequest.boughtPrice}")
+        }
+        if (purchaseRequest.packageAmount <= 0) {
+            errors.add("Package amount must be positive, got ${purchaseRequest.packageAmount}")
+        }
+
+        if (errors.isNotEmpty()) {
+            return Result.failure(IllegalArgumentException(errors.joinToString("; ")))
+        }
+
+        return Result.success(Unit)
+    }
+
+    fun savePurchase(purchaseRequest: PurchaseRequest): Result<Long> {
+        validatePurchaseRequest(purchaseRequest).onFailure { return Result.failure(it) }
+
+        return databasePurchaseOperationHistoryRepository.trySavePurchase(purchaseRequest)
     }
 }

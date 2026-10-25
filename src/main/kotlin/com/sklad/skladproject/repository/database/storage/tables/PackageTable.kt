@@ -1,9 +1,10 @@
 package com.sklad.skladproject.repository.database.storage.tables
 
+import com.sklad.skladproject.dto.PackageDto
 import com.sklad.skladproject.repository.database.storage.DatabaseAccessRepository
+import kotlin.use
 import org.slf4j.LoggerFactory
 import org.springframework.stereotype.Repository
-import kotlin.use
 
 @Repository
 class PackageTable(val databaseAccessRepository: DatabaseAccessRepository) {
@@ -107,5 +108,61 @@ class PackageTable(val databaseAccessRepository: DatabaseAccessRepository) {
         }
 
         return packageId
+    }
+
+    private val selectPackageWithUnit =
+        "SELECT PACKAGE.id, package_name, package_weight, package_weight_unit_id, UNIT.unit_name " +
+                "FROM PACKAGE LEFT JOIN UNIT ON UNIT.id = PACKAGE.package_weight_unit_id"
+
+    private fun readPackage(resultSet: java.sql.ResultSet): PackageDto {
+        return PackageDto(
+            id = resultSet.getLong(1),
+            name = resultSet.getString(2),
+            weight = resultSet.getDouble(3),
+            weightUnitId = resultSet.getLong(4),
+            weightUnitName = resultSet.getString(5),
+        )
+    }
+
+    fun tryGetAllPackages(): List<PackageDto> {
+        try {
+            databaseAccessRepository.getDataSource().connection.use { connection ->
+                val statement = connection.prepareStatement("$selectPackageWithUnit ORDER BY PACKAGE.id")
+
+                val result = mutableListOf<PackageDto>()
+                val resultSet = statement.executeQuery()
+                while (resultSet.next()) {
+                    result.add(readPackage(resultSet))
+                }
+
+                statement.close()
+                return result
+            }
+        } catch (e: Throwable) {
+            logger.warn("Error getting all packages from table PACKAGE", e)
+            return emptyList()
+        }
+    }
+
+    // Package name is not unique by itself (unique key is name + weight + unit), so several rows may match
+    fun tryGetPackagesByName(name: String): List<PackageDto> {
+        try {
+            databaseAccessRepository.getDataSource().connection.use { connection ->
+                val statement = connection.prepareStatement("$selectPackageWithUnit WHERE package_name = ? ORDER BY PACKAGE.id")
+                statement.setString(1, name)
+
+                val result = mutableListOf<PackageDto>()
+                val resultSet = statement.executeQuery()
+                while (resultSet.next()) {
+                    result.add(readPackage(resultSet))
+                }
+
+                statement.close()
+                return result
+            }
+        } catch (e: Throwable) {
+            logger.warn("Error getting packages by name $name from table PACKAGE", e)
+            return emptyList()
+        }
     }
 }
