@@ -32,6 +32,26 @@ class MeasureUnitTable(val databaseAccessRepository: DatabaseAccessRepository) {
         }
     }
 
+    fun checkIfMeasureUnitId(id: Long): Boolean? {
+        try {
+            databaseAccessRepository.getDataSource().connection.use { connection ->
+                val statement = connection.prepareStatement("SELECT id FROM UNIT WHERE id = ?")
+                statement.setLong(1, id)
+
+                val resultSet = statement.executeQuery()
+                resultSet.next()
+                val result = resultSet.fetchSize
+
+                statement.close()
+
+                return result == 1
+            }
+        } catch (e: Throwable) {
+            logger.warn("Error checking if measure_unit_id=$id exists in database", e)
+        }
+        return null
+    }
+
     fun tryGetMeasureUnitId(unitName: String): Long? {
         logger.info("Getting measure unit id for name $unitName")
         var packUnitId: Long

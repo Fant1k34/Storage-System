@@ -17,8 +17,10 @@ class SkladProjectApplication(
         val flyway = Flyway.configure()
             .dataSource("jdbc:postgresql://$host:$port/$databaseName", username, password)
             .locations("classpath:db/migration") // Directory for migration scripts
+            .baselineOnMigrate(true)
             .load()
 
+        flyway.repair()
         flyway.migrate()
     }
 }

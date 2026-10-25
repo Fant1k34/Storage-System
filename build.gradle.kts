@@ -30,19 +30,15 @@ extra["springAiVersion"] = "1.0.2"
 
 dependencies {
     implementation("org.springframework.boot:spring-boot-starter-data-jdbc")
-    implementation("org.springframework.boot:spring-boot-starter-data-jpa")
-
     implementation("org.springframework.boot:spring-boot-starter-webflux")
 
     implementation("org.flywaydb:flyway-database-postgresql")
     implementation("org.postgresql:postgresql:42.5.0")
 
     implementation("org.jetbrains.kotlin:kotlin-reflect")
-    implementation("org.springframework.ai:spring-ai-starter-model-openai")
     compileOnly("org.projectlombok:lombok")
     developmentOnly("org.springframework.boot:spring-boot-devtools")
     developmentOnly("org.springframework.boot:spring-boot-docker-compose")
-    developmentOnly("org.springframework.ai:spring-ai-spring-boot-docker-compose")
     annotationProcessor("org.projectlombok:lombok")
     testImplementation("org.springframework.boot:spring-boot-starter-test")
     testImplementation("org.jetbrains.kotlin:kotlin-test-junit5")

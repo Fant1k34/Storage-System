@@ -33,6 +33,26 @@ class PackageTable(val databaseAccessRepository: DatabaseAccessRepository) {
         return false
     }
 
+    fun checkIfPackageIdExists(id: Long): Boolean? {
+        try {
+            databaseAccessRepository.getDataSource().connection.use { connection ->
+                val statement = connection.prepareStatement("SELECT id FROM PACKAGE WHERE id = ?")
+                statement.setLong(1, id)
+
+                val resultSet = statement.executeQuery()
+                resultSet.next()
+                val result = resultSet.fetchSize
+
+                statement.close()
+
+                return result == 1
+            }
+        } catch (e: Throwable) {
+            logger.warn("Error checking if package_id=$id exists in database", e)
+        }
+        return null
+    }
+
     fun tryGetPackageId(name: String, weight: Double, unitId: Long): Long? {
         val packageId: Long
 

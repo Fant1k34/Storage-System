@@ -1,59 +1,44 @@
 package com.sklad.skladproject.controllers
 
-import com.sklad.skladproject.domain.PurchaseItem
-import com.sklad.skladproject.dto.AddingPurchaseResultDto
-import com.sklad.skladproject.dto.PurchaseDto
-import com.sklad.skladproject.repository.PurchaseBuilder
-import com.sklad.skladproject.services.SavePurchaseService
+import com.sklad.skladproject.dto.PurchaseItemDto
+import com.sklad.skladproject.dto.PurchaseRequestDto
+import com.sklad.skladproject.services.PurchaseRequestService
 import org.slf4j.LoggerFactory
 import org.springframework.web.bind.annotation.GetMapping
 import org.springframework.web.bind.annotation.PostMapping
 import org.springframework.web.bind.annotation.RequestBody
-import org.springframework.web.bind.annotation.RestController
 import org.springframework.web.bind.annotation.RequestMapping
 import org.springframework.web.bind.annotation.RequestParam
 import org.springframework.web.bind.annotation.ResponseBody
+import org.springframework.web.bind.annotation.RestController
 
 @RestController
 @RequestMapping("/")
 class PurchaseOperationController(
-    val purchaseBuilder: PurchaseBuilder,
-    val savePurchaseService: SavePurchaseService
+    val purchaseRequestService: PurchaseRequestService
 ) {
     private val logger = LoggerFactory.getLogger("PurchaseOperationController")
 
     @ResponseBody
-    @GetMapping("/v1/purchase-operations")
-    fun page(@RequestParam("page") page: Int): List<PurchaseItem> {
-        val limit = 10
-        val offset = page * limit
+    @GetMapping("/health-check")
+    fun health_check(): String {
+        return "OK"
+    }
 
-        return savePurchaseService.tryGetPurchaseOperations(limit, offset)
+    @ResponseBody
+    @GetMapping("/v1/purchase-operations")
+    fun page(@RequestParam("page") page: Int): List<PurchaseItemDto> {
+        TODO()
     }
 
     @ResponseBody
     @PostMapping("/v1/add-purchase-operation")
-    fun addItemToStorage(@RequestBody purchaseOperation: PurchaseDto): AddingPurchaseResultDto {
-        val purchase = purchaseBuilder.associatePurchaseDtoWithPurchaseItem(purchaseOperation)
+    fun addItemToStorage(@RequestBody purchaseRequest: PurchaseRequestDto): Boolean {
+        logger.info("Handling purchase request $purchaseRequest")
 
-        return purchase.fold(
-            AddingPurchaseResultDto(
-                emptyList(),
-                emptyList()
-            )
-        ) { acc, (purchaseItemDto, purchaseItem) ->
-            if (purchaseItem == null) {
-                logger.warn("Error occurred while creating purchase item for purchase item dto: $purchaseItemDto. Skipping this purchase item.")
-                return@fold AddingPurchaseResultDto(acc.added, acc.failed + listOf(purchaseItemDto.describingString))
-            }
+        val purchaseRequestDomain = purchaseRequestService.convertToPurchaseRequest(purchaseRequest)
+        val result = purchaseRequestService.savePurchase(purchaseRequestDomain)
 
-            val result = savePurchaseService.savePurchase(purchaseItem)
-            if (result.isFailure) {
-                logger.warn("Error occurred while saving purchase item for purchase item dto: $purchaseItemDto. Skipping this purchase item.")
-                return@fold AddingPurchaseResultDto(acc.added, acc.failed + listOf(purchaseItemDto.describingString))
-            }
-
-            return@fold AddingPurchaseResultDto(acc.added + listOf(purchaseItemDto.describingString), acc.failed)
-        }
+        return result.isSuccess
     }
 }

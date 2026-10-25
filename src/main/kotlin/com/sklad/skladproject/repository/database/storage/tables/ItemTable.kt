@@ -6,8 +6,28 @@ import org.springframework.stereotype.Repository
 import kotlin.use
 
 @Repository
-class ListingItemTable(val databaseAccessRepository: DatabaseAccessRepository) {
+class ItemTable(val databaseAccessRepository: DatabaseAccessRepository) {
     private val logger = LoggerFactory.getLogger("ListingItemStorage")
+
+    fun checkIfItemIdExists(id: Long): Boolean? {
+        try {
+            databaseAccessRepository.getDataSource().connection.use { connection ->
+                val statement = connection.prepareStatement("SELECT id FROM ITEM WHERE id = ?")
+                statement.setLong(1, id)
+
+                val resultSet = statement.executeQuery()
+                resultSet.next()
+                val result = resultSet.fetchSize
+
+                statement.close()
+
+                return result == 1
+            }
+        } catch (e: Throwable) {
+            logger.warn("Error checking if listing_item_id=$id exists in database", e)
+        }
+        return null
+    }
 
     fun trySaveListingItemAndReturnId(item: String): Result<Long> {
         try {

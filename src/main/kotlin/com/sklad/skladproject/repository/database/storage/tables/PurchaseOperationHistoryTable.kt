@@ -8,27 +8,27 @@ import org.springframework.stereotype.Repository
 class PurchaseOperationHistoryTable(val databaseAccessRepository: DatabaseAccessRepository) {
     val logger = LoggerFactory.getLogger("PurchaseOperationHistoryTable")
 
-    fun trySavePurchaseOperationAndReturnId(
+    fun savePurchaseOperationAndReturnId(
         date: String,
         listingItemId: Long,
-        itemQuantityNumber: Double,
+        itemQuantityNumber: Float,
         itemQuantityUnitId: Long,
         packageAmount: Int,
         packageId: Long,
-        boughtPrice: Double,
+        boughtPrice: Float,
         boughtPriceUnitId: Long,
         lastStateChangedTimestamp: Long
     ): Result<Long> {
         try {
             databaseAccessRepository.getDataSource().connection.use { connection ->
                 val statement =
-                    connection.prepareStatement("INSERT INTO PURCHASE_OPERATION_HISTORY (item_id, item_quantity, item_unit, package_amount, package_id, bought_price, bought_price_unit, date, operation_timestamp) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?) RETURNING id")
+                    connection.prepareStatement("INSERT INTO PURCHASE_OPERATION_HISTORY (item_id, item_quantity, item_unit, package_amount, package_id, bought_price, currency, date, operation_timestamp) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?) RETURNING id")
                 statement.setLong(1, listingItemId)
-                statement.setDouble(2, itemQuantityNumber)
+                statement.setFloat(2, itemQuantityNumber)
                 statement.setLong(3, itemQuantityUnitId)
                 statement.setInt(4, packageAmount)
                 statement.setLong(5, packageId)
-                statement.setDouble(6, boughtPrice)
+                statement.setFloat(6, boughtPrice)
                 statement.setLong(7, boughtPriceUnitId)
                 statement.setString(8, date)
                 statement.setLong(9, lastStateChangedTimestamp)
@@ -51,7 +51,7 @@ class PurchaseOperationHistoryTable(val databaseAccessRepository: DatabaseAccess
     fun tryGetPurchaseOperations(limit: Int, offset: Int): List<PurchaseOperationHistoryDao> {
         databaseAccessRepository.getDataSource().connection.use { connection ->
             val statement =
-                connection.prepareStatement("SELECT PURCHASE_OPERATION_HISTORY.id, item_id, item_name, item_quantity, ITEM_UNIT.unit_name, package_amount, PACKAGE.package_name, PACKAGE.package_weight, PACKAGE_UNIT.unit_name, bought_price, CURRENCY.unit_name, date, operation_timestamp FROM PURCHASE_OPERATION_HISTORY LEFT JOIN UNIT AS ITEM_UNIT ON ITEM_UNIT.id=PURCHASE_OPERATION_HISTORY.item_unit LEFT JOIN ITEM on ITEM.id=PURCHASE_OPERATION_HISTORY.item_id LEFT JOIN UNIT AS CURRENCY ON CURRENCY.id=PURCHASE_OPERATION_HISTORY.bought_price_unit LEFT JOIN PACKAGE ON PACKAGE.id=PURCHASE_OPERATION_HISTORY.package_id LEFT JOIN UNIT AS PACKAGE_UNIT ON PACKAGE_UNIT.id=PACKAGE.package_weight_unit_id LIMIT ? OFFSET ?")
+                connection.prepareStatement("SELECT PURCHASE_OPERATION_HISTORY.id, item_id, item_name, item_quantity, ITEM_UNIT.unit_name, package_amount, PACKAGE.package_name, PACKAGE.package_weight, PACKAGE_UNIT.unit_name, bought_price, CURRENCY.unit_name, date, operation_timestamp FROM PURCHASE_OPERATION_HISTORY LEFT JOIN UNIT AS ITEM_UNIT ON ITEM_UNIT.id=PURCHASE_OPERATION_HISTORY.item_unit LEFT JOIN ITEM on ITEM.id=PURCHASE_OPERATION_HISTORY.item_id LEFT JOIN CURRENCY ON CURRENCY.id=PURCHASE_OPERATION_HISTORY.currency LEFT JOIN PACKAGE ON PACKAGE.id=PURCHASE_OPERATION_HISTORY.package_id LEFT JOIN UNIT AS PACKAGE_UNIT ON PACKAGE_UNIT.id=PACKAGE.package_weight_unit_id LIMIT ? OFFSET ?")
             statement.setInt(1, limit)
             statement.setInt(2, offset)
 

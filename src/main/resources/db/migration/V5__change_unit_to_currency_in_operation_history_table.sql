@@ -1,0 +1,20 @@
+ALTER TABLE PURCHASE_OPERATION_HISTORY
+    ADD COLUMN currency INTEGER;
+
+UPDATE PURCHASE_OPERATION_HISTORY poh
+SET currency = c.id
+    FROM UNIT u
+JOIN CURRENCY c ON c.currency_name = u.unit_name
+WHERE poh.bought_price_unit = u.id;
+
+ALTER TABLE PURCHASE_OPERATION_HISTORY
+    ALTER COLUMN currency SET NOT NULL;
+
+ALTER TABLE PURCHASE_OPERATION_HISTORY
+DROP COLUMN bought_price_unit;
+
+ALTER TABLE PURCHASE_OPERATION_HISTORY
+    ADD CONSTRAINT fk_purchase_operation_history_currency
+        FOREIGN KEY (currency)
+            REFERENCES CURRENCY (id)
+            ON DELETE CASCADE;

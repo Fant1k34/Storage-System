@@ -3,9 +3,10 @@ package com.sklad.skladproject.domain
 data class PurchaseItem(
     val date: String,
     val listingItem: String,
-    val quantity: Quantity,
+    val quantityAmount: Float,
+    val quantityMeasureId: Long,
     val packageAmount: Int,
-    val pack: Package,
-    val boughtPrice: Quantity,
-    val lastStateChangedTimestamp: Long
+    val packageId: Long,
+    val price: Float,
+    val currencyId: Long
 )
