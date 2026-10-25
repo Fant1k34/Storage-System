@@ -1,0 +1,42 @@
+{
+  "name": "sklad-frontend",
+  "private": true,
+  "version": "0.1.0",
+  "type": "module",
+  "description": "Warehouse purchases UI: React + TypeScript + Redux Toolkit + Ant Design, served by Node with an API proxy to the Spring backend",
+  "scripts": {
+    "dev": "vite",
+    "build": "tsc -b && vite build",
+    "preview": "vite preview",
+    "start": "node server/index.mjs",
+    "test": "vitest run",
+    "test:watch": "vitest",
+    "typecheck": "tsc -b --noEmit",
+    "shots": "node scripts/screenshots.mjs"
+  },
+  "dependencies": {
+    "@ant-design/icons": "^5.5.1",
+    "@reduxjs/toolkit": "^2.3.0",
+    "antd": "^5.22.2",
+    "dayjs": "^1.11.13",
+    "express": "^4.21.1",
+    "http-proxy-middleware": "^3.0.3",
+    "react": "^18.3.1",
+    "react-dom": "^18.3.1",
+    "react-redux": "^9.1.2"
+  },
+  "devDependencies": {
+    "@testing-library/jest-dom": "^6.6.3",
+    "@testing-library/react": "^16.0.1",
+    "@testing-library/user-event": "^14.5.2",
+    "@types/express": "^4.17.21",
+    "@types/node": "^22.9.0",
+    "@types/react": "^18.3.12",
+    "@types/react-dom": "^18.3.1",
+    "@vitejs/plugin-react": "^4.3.3",
+    "jsdom": "^25.0.1",
+    "typescript": "^5.6.3",
+    "vite": "^5.4.11",
+    "vitest": "^2.1.5"
+  }
+}
